@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation, Link } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -8,8 +8,10 @@ import {
   Shield,
   Settings,
   ChevronDown,
-  ChevronLeft,
+  ChevronRight,
   X,
+  PanelRightClose,
+  PanelRightOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -36,7 +38,7 @@ interface AppSidebarProps {
   onClose: () => void;
 }
 
-const SidebarItem = ({ item, collapsed }: { item: MenuItem; collapsed: boolean }) => {
+const SidebarItem = ({ item, collapsed, onNavigate }: { item: MenuItem; collapsed: boolean; onNavigate?: () => void }) => {
   const location = useLocation();
   const [expanded, setExpanded] = useState(false);
   const isActive = item.path === location.pathname;
@@ -49,22 +51,22 @@ const SidebarItem = ({ item, collapsed }: { item: MenuItem; collapsed: boolean }
         <button
           onClick={() => setExpanded(!expanded)}
           className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
-            "text-sidebar-foreground hover:bg-sidebar-accent"
+            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm menu-item-hover",
+            "text-sidebar-foreground"
           )}
         >
-          <Icon className="w-5 h-5 shrink-0" />
+          <Icon className="w-5 h-5 shrink-0 icon-hover" />
           {!collapsed && (
             <>
               <span className="flex-1 text-right">{item.title}</span>
-              <ChevronDown className={cn("w-4 h-4 transition-transform", expanded && "rotate-180")} />
+              <ChevronDown className={cn("w-4 h-4 transition-transform duration-200", expanded && "rotate-180")} />
             </>
           )}
         </button>
         {expanded && !collapsed && (
-          <div className="mr-8 mt-1 space-y-1">
+          <div className="mr-8 mt-1 space-y-0.5 animate-fade-in">
             {item.children!.map((child) => (
-              <SidebarItem key={child.id} item={child} collapsed={collapsed} />
+              <SidebarItem key={child.id} item={child} collapsed={collapsed} onNavigate={onNavigate} />
             ))}
           </div>
         )}
@@ -75,14 +77,18 @@ const SidebarItem = ({ item, collapsed }: { item: MenuItem; collapsed: boolean }
   return (
     <Link
       to={item.path || "/"}
+      onClick={onNavigate}
       className={cn(
-        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
+        "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200",
         isActive
-          ? "bg-primary text-primary-foreground font-medium"
+          ? "bg-primary text-primary-foreground font-medium shadow-sm"
           : "text-sidebar-foreground hover:bg-sidebar-accent"
       )}
     >
-      <Icon className="w-5 h-5 shrink-0" />
+      <Icon className={cn(
+        "w-5 h-5 shrink-0 transition-transform duration-200",
+        !isActive && "group-hover:scale-110"
+      )} />
       {!collapsed && <span>{item.title}</span>}
     </Link>
   );
@@ -90,44 +96,95 @@ const SidebarItem = ({ item, collapsed }: { item: MenuItem; collapsed: boolean }
 
 const AppSidebar = ({ open, onClose }: AppSidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 1024);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const handleNavigate = useCallback(() => {
+    if (isMobile) onClose();
+  }, [isMobile, onClose]);
 
   return (
     <>
-      {/* Mobile overlay */}
-      {open && (
-        <div className="fixed inset-0 z-40 bg-foreground/20 lg:hidden" onClick={onClose} />
-      )}
+      {/* Mobile overlay with backdrop blur */}
+      <div
+        className={cn(
+          "fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm transition-opacity duration-300 lg:hidden",
+          open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        )}
+        onClick={onClose}
+      />
 
       <aside
         className={cn(
-          "fixed top-0 right-0 h-full z-50 bg-card border-l flex flex-col transition-all duration-300",
-          "lg:sticky lg:top-0 lg:z-auto",
-          collapsed ? "w-[68px]" : "w-64",
+          "fixed top-0 right-0 h-full z-50 bg-card flex flex-col transition-all duration-300 ease-out",
+          "lg:sticky lg:top-0 lg:z-auto lg:h-screen",
+          collapsed && !isMobile ? "w-[72px]" : "w-[270px]",
           open ? "translate-x-0" : "translate-x-full lg:translate-x-0"
         )}
+        style={{ boxShadow: "var(--shadow-sidebar)" }}
       >
         {/* Sidebar header */}
-        <div className="h-14 flex items-center justify-between px-3 border-b">
-          {!collapsed && <span className="font-bold text-primary">منوی اصلی</span>}
+        <div className="h-[60px] flex items-center justify-between px-4 border-b">
+          {(!collapsed || isMobile) && (
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">م</span>
+              </div>
+              <span className="font-bold text-foreground text-base">پنل مدیریت</span>
+            </div>
+          )}
           <Button
             variant="ghost"
             size="icon"
             onClick={() => {
-              if (window.innerWidth < 1024) onClose();
+              if (isMobile) onClose();
               else setCollapsed(!collapsed);
             }}
-            className="mr-auto"
+            className={cn("h-8 w-8 rounded-lg", collapsed && !isMobile && "mx-auto")}
           >
-            {window.innerWidth < 1024 ? <X className="w-5 h-5" /> : <ChevronLeft className={cn("w-5 h-5 transition-transform", collapsed && "rotate-180")} />}
+            {isMobile ? (
+              <X className="w-5 h-5" />
+            ) : collapsed ? (
+              <PanelRightOpen className="w-4 h-4" />
+            ) : (
+              <PanelRightClose className="w-4 h-4" />
+            )}
           </Button>
         </div>
 
         {/* Menu items */}
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
           {defaultMenuItems.map((item) => (
-            <SidebarItem key={item.id} item={item} collapsed={collapsed} />
+            <SidebarItem key={item.id} item={item} collapsed={collapsed && !isMobile} onNavigate={handleNavigate} />
           ))}
         </nav>
+
+        {/* Sidebar footer */}
+        <div className="p-3 border-t">
+          {(!collapsed || isMobile) ? (
+            <div className="flex items-center gap-3 px-3 py-2">
+              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <span className="text-primary font-bold text-xs">ا</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">ادمین سیستم</p>
+                <p className="text-xs text-muted-foreground truncate">admin@example.com</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-primary font-bold text-xs">ا</span>
+              </div>
+            </div>
+          )}
+        </div>
       </aside>
     </>
   );

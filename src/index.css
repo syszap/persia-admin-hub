@@ -30,7 +30,7 @@
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 15% 88%;
+    --border: 210 15% 90%;
     --input: 210 15% 88%;
     --ring: 152 55% 42%;
 
@@ -42,7 +42,7 @@
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 152 40% 94%;
     --sidebar-accent-foreground: 152 55% 30%;
-    --sidebar-border: 210 15% 90%;
+    --sidebar-border: 210 15% 92%;
     --sidebar-ring: 152 55% 42%;
 
     --success: 152 55% 42%;
@@ -52,7 +52,11 @@
     --info: 210 80% 55%;
     --info-foreground: 0 0% 100%;
 
-    --topbar-height: 3.5rem;
+    --topbar-height: 3.75rem;
+
+    --shadow-card: 0 4px 20px rgba(0,0,0,0.05);
+    --shadow-card-hover: 0 8px 30px rgba(0,0,0,0.08);
+    --shadow-sidebar: -4px 0 24px rgba(0,0,0,0.06);
   }
 }
 
@@ -64,11 +68,61 @@
   body {
     @apply bg-background text-foreground font-vazir antialiased;
     font-feature-settings: "ss01";
+    background: linear-gradient(135deg, hsl(210 20% 96%) 0%, hsl(210 25% 94%) 50%, hsl(152 15% 95%) 100%);
+    min-height: 100vh;
   }
 }
 
 @layer utilities {
   .card-surface {
-    @apply bg-card rounded-xl border shadow-sm;
+    @apply bg-card rounded-2xl border;
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
   }
+
+  .card-surface-hover:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-1px);
+  }
+
+  .btn-hover {
+    @apply transition-all duration-200;
+  }
+
+  .btn-hover:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .icon-hover {
+    @apply transition-transform duration-200;
+  }
+
+  .icon-hover:hover {
+    transform: scale(1.15) rotate(-5deg);
+  }
+
+  .menu-item-hover {
+    @apply transition-all duration-200;
+  }
+
+  .menu-item-hover:hover {
+    @apply bg-sidebar-accent;
+    transform: translateX(-2px);
+  }
+}
+
+/* Smooth scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(210 15% 85%);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(210 15% 75%);
 }
