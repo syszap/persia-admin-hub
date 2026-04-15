@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import logo from "@/assets/logo.png";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -35,9 +36,7 @@ const Login = () => {
         <div className="w-full max-w-[420px] animate-fade-in">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-10">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-md">
-              <span className="text-primary-foreground font-bold text-lg">ش</span>
-            </div>
+            <img src={logo} alt="شیما" className="w-11 h-11 object-contain animate-fade-in" />
             <span className="font-bold text-xl text-foreground">پنل مدیریت شیما</span>
           </div>
 
@@ -119,7 +118,7 @@ const Login = () => {
 
         <div className="relative text-center text-white px-12 max-w-lg animate-fade-in">
           <div className="w-20 h-20 rounded-3xl bg-white/15 backdrop-blur-sm flex items-center justify-center mx-auto mb-8 shadow-lg">
-            <span className="text-4xl font-bold">ش</span>
+            <img src={logo} alt="شیما" className="w-14 h-14 object-contain brightness-0 invert" />
           </div>
           <h2 className="text-3xl font-bold mb-4">پنل مدیریت شیما</h2>
           <p className="text-lg text-white/80 leading-relaxed">

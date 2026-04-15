@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/logo.png";
 
 interface MenuItem {
   id: string;
@@ -129,13 +130,15 @@ const AppSidebar = ({ open, onClose }: AppSidebarProps) => {
         style={{ boxShadow: '-4px 0 20px rgba(0,0,0,0.05)' }}
       >
         <div className="h-[60px] flex items-center justify-between px-4 border-b border-border/40">
-          {(!collapsed || isMobile) && (
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm">
-                <span className="text-primary-foreground font-bold text-sm">م</span>
-              </div>
+          {(!collapsed || isMobile) ? (
+            <Link to="/" className="flex items-center gap-2.5 group">
+              <img src={logo} alt="شیما" className="w-9 h-9 object-contain transition-transform duration-200 group-hover:scale-105" />
               <span className="font-bold text-foreground text-[15px]">پنل مدیریت</span>
-            </div>
+            </Link>
+          ) : (
+            <Link to="/" className="mx-auto">
+              <img src={logo} alt="شیما" className="w-8 h-8 object-contain transition-transform duration-200 hover:scale-105" />
+            </Link>
           )}
           <Button
             variant="ghost"
