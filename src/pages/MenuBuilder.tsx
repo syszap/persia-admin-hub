@@ -167,10 +167,10 @@ const MenuBuilder = () => {
             {!editingItem && flatItems(menuItems).length > 0 && (
               <div className="space-y-3">
                 <Label className="label-subtle">والد (اختیاری)</Label>
-                <Select value={form.parentId} onValueChange={(v) => setForm({ ...form, parentId: v })}>
+                <Select value={form.parentId || "__none__"} onValueChange={(v) => setForm({ ...form, parentId: v === "__none__" ? "" : v })}>
                   <SelectTrigger className="h-11 rounded-xl"><SelectValue placeholder="بدون والد (ریشه)" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">بدون والد</SelectItem>
+                    <SelectItem value="__none__">بدون والد</SelectItem>
                     {flatItems(menuItems).map((i) => (
                       <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>
                     ))}

@@ -71,16 +71,11 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Checkbox id="remember" />
-                <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
-                  مرا به خاطر بسپار
-                </label>
-              </div>
-              <button type="button" className="text-sm text-primary hover:underline">
-                فراموشی رمز عبور
-              </button>
+            <div className="flex items-center gap-2">
+              <Checkbox id="remember" />
+              <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
+                مرا به خاطر بسپار
+              </label>
             </div>
 
             {error && (
