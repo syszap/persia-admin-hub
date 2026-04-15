@@ -1,4 +1,4 @@
-import { LayoutDashboard, BarChart3, Menu, Users, TrendingUp, Activity } from "lucide-react";
+import { LayoutDashboard, BarChart3, Menu, Users } from "lucide-react";
 import AdminLayout from "@/components/AdminLayout";
 import EmptyState from "@/components/EmptyState";
 import PageHeader from "@/components/PageHeader";
@@ -8,12 +8,12 @@ const StatCard = ({ title, value, icon: Icon, delay }: { title: string; value: s
     className="card-surface card-surface-hover p-6 flex items-center gap-4 animate-fade-in"
     style={{ animationDelay: delay }}
   >
-    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center shrink-0">
+    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/18 via-primary/10 to-primary/4 flex items-center justify-center shrink-0 border border-primary/8">
       <Icon className="w-6 h-6 text-primary" />
     </div>
     <div>
-      <p className="text-sm text-muted-foreground mb-0.5">{title}</p>
-      <p className="text-2xl font-bold text-foreground">{value}</p>
+      <p className="text-xs font-medium text-muted-foreground mb-1">{title}</p>
+      <p className="text-2xl font-bold text-foreground tracking-tight">{value}</p>
     </div>
   </div>
 );
@@ -25,14 +25,14 @@ const Index = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
         <StatCard title="مجموع کاربران" value="۰" icon={Users} delay="0ms" />
-        <StatCard title="منوهای فعال" value="۰" icon={Menu} delay="50ms" />
-        <StatCard title="گزارشات" value="۰" icon={BarChart3} delay="100ms" />
-        <StatCard title="نقش‌ها" value="۰" icon={LayoutDashboard} delay="150ms" />
+        <StatCard title="منوهای فعال" value="۰" icon={Menu} delay="60ms" />
+        <StatCard title="گزارشات" value="۰" icon={BarChart3} delay="120ms" />
+        <StatCard title="نقش‌ها" value="۰" icon={LayoutDashboard} delay="180ms" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card-surface p-6 animate-fade-in" style={{ animationDelay: "200ms" }}>
-          <h2 className="font-semibold text-base mb-2">آخرین گزارشات</h2>
+        <div className="card-surface p-7 animate-fade-in" style={{ animationDelay: "240ms" }}>
+          <h2 className="section-title mb-4">آخرین گزارشات</h2>
           <EmptyState
             icon={BarChart3}
             title="هنوز گزارشی ایجاد نشده است"
@@ -41,8 +41,8 @@ const Index = () => {
             onAction={() => {}}
           />
         </div>
-        <div className="card-surface p-6 animate-fade-in" style={{ animationDelay: "250ms" }}>
-          <h2 className="font-semibold text-base mb-2">منوهای اخیر</h2>
+        <div className="card-surface p-7 animate-fade-in" style={{ animationDelay: "300ms" }}>
+          <h2 className="section-title mb-4">منوهای اخیر</h2>
           <EmptyState
             icon={Menu}
             title="هیچ منویی تعریف نشده است"

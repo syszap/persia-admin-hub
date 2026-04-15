@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BarChart3, Plus, Pencil, Trash2, RefreshCw, Table, PieChart, LayoutGrid } from "lucide-react";
+import { BarChart3, Pencil, Trash2, RefreshCw, Table, PieChart, LayoutGrid } from "lucide-react";
 import AdminLayout from "@/components/AdminLayout";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
@@ -20,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 
 interface Report {
   id: string;
@@ -91,15 +90,15 @@ const ReportBuilder = () => {
           />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {reports.map((report) => {
             const typeInfo = typeLabels[report.type];
             const TypeIcon = typeInfo.icon;
             return (
-              <div key={report.id} className="card-surface p-5 animate-fade-in">
-                <div className="flex items-start justify-between mb-4">
+              <div key={report.id} className="card-surface card-surface-hover p-6 animate-fade-in">
+                <div className="flex items-start justify-between mb-5">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/18 to-primary/5 flex items-center justify-center border border-primary/8">
                       <TypeIcon className="w-5 h-5 text-primary" />
                     </div>
                     <div>
@@ -110,19 +109,19 @@ const ReportBuilder = () => {
                 </div>
 
                 {report.dataSource && (
-                  <p className="text-xs text-muted-foreground mb-4 font-mono" dir="ltr">
+                  <p className="text-xs text-muted-foreground mb-4 font-mono bg-muted/40 px-3 py-1.5 rounded-lg" dir="ltr">
                     {report.dataSource}
                   </p>
                 )}
 
-                <div className="h-24 rounded-lg bg-muted/50 flex items-center justify-center mb-4">
+                <div className="h-24 rounded-xl bg-muted/30 border border-border/30 flex items-center justify-center mb-5">
                   <span className="text-xs text-muted-foreground">پیش‌نمایش گزارش</span>
                 </div>
 
                 <div className="flex gap-1 justify-end">
-                  <Button variant="ghost" size="icon" className="h-8 w-8"><RefreshCw className="w-3.5 h-3.5" /></Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(report)}><Pencil className="w-3.5 h-3.5" /></Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setReports((prev) => prev.filter((r) => r.id !== report.id))}><Trash2 className="w-3.5 h-3.5" /></Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg"><RefreshCw className="w-3.5 h-3.5" /></Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => openEdit(report)}><Pencil className="w-3.5 h-3.5" /></Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive" onClick={() => setReports((prev) => prev.filter((r) => r.id !== report.id))}><Trash2 className="w-3.5 h-3.5" /></Button>
                 </div>
               </div>
             );
@@ -131,19 +130,19 @@ const ReportBuilder = () => {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md rounded-2xl">
           <DialogHeader>
-            <DialogTitle>{editingReport ? "ویرایش گزارش" : "ایجاد گزارش جدید"}</DialogTitle>
+            <DialogTitle className="text-lg">{editingReport ? "ویرایش گزارش" : "ایجاد گزارش جدید"}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>عنوان گزارش</Label>
-              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="عنوان" />
+          <div className="space-y-5 py-4">
+            <div className="space-y-3">
+              <Label className="label-subtle">عنوان گزارش</Label>
+              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="عنوان" className="input-premium h-11 rounded-xl" />
             </div>
-            <div className="space-y-2">
-              <Label>نوع گزارش</Label>
+            <div className="space-y-3">
+              <Label className="label-subtle">نوع گزارش</Label>
               <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as Report["type"] })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="table">جدول</SelectItem>
                   <SelectItem value="chart">نمودار</SelectItem>
@@ -152,14 +151,14 @@ const ReportBuilder = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>منبع داده (اختیاری)</Label>
-              <Input value={form.dataSource} onChange={(e) => setForm({ ...form, dataSource: e.target.value })} placeholder="api/endpoint" dir="ltr" />
+            <div className="space-y-3">
+              <Label className="label-subtle">منبع داده (اختیاری)</Label>
+              <Input value={form.dataSource} onChange={(e) => setForm({ ...form, dataSource: e.target.value })} placeholder="api/endpoint" dir="ltr" className="input-premium h-11 rounded-xl" />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>انصراف</Button>
-            <Button onClick={handleSave}>ذخیره</Button>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setDialogOpen(false)} className="rounded-xl">انصراف</Button>
+            <Button onClick={handleSave} className="btn-hover rounded-xl">ذخیره</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
