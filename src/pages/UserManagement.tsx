@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Users, Plus, Pencil, Trash2 } from "lucide-react";
+import { Users, Pencil, Trash2 } from "lucide-react";
 import AdminLayout from "@/components/AdminLayout";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
@@ -72,9 +72,9 @@ const UserManagement = () => {
   };
 
   const roleColors: Record<string, string> = {
-    admin: "bg-primary/10 text-primary",
-    moderator: "bg-warning/10 text-warning",
-    user: "bg-muted text-muted-foreground",
+    admin: "bg-primary/10 text-primary border-primary/20",
+    moderator: "bg-warning/10 text-warning border-warning/20",
+    user: "bg-muted text-muted-foreground border-border",
   };
 
   return (
@@ -87,7 +87,7 @@ const UserManagement = () => {
         onAction={openCreate}
       />
 
-      <div className="card-surface">
+      <div className="card-surface overflow-hidden">
         {users.length === 0 ? (
           <EmptyState
             icon={Users}
@@ -99,29 +99,29 @@ const UserManagement = () => {
         ) : (
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>نام</TableHead>
-                <TableHead>ایمیل</TableHead>
-                <TableHead>نقش</TableHead>
-                <TableHead className="w-24">عملیات</TableHead>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="text-xs font-medium text-muted-foreground">نام</TableHead>
+                <TableHead className="text-xs font-medium text-muted-foreground">ایمیل</TableHead>
+                <TableHead className="text-xs font-medium text-muted-foreground">نقش</TableHead>
+                <TableHead className="w-24 text-xs font-medium text-muted-foreground">عملیات</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell dir="ltr" className="text-right">{user.email}</TableCell>
+                <TableRow key={user.id} className="hover:bg-muted/30 transition-colors">
+                  <TableCell className="font-medium text-sm">{user.name}</TableCell>
+                  <TableCell dir="ltr" className="text-right text-sm text-muted-foreground">{user.email}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className={roleColors[user.role] || ""}>
+                    <Badge variant="outline" className={`${roleColors[user.role] || ""} text-xs font-medium`}>
                       {user.role === "admin" ? "مدیر" : user.role === "moderator" ? "ناظر" : "کاربر"}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(user)}>
+                    <div className="flex gap-0.5">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => openEdit(user)}>
                         <Pencil className="w-3.5 h-3.5" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setUsers((prev) => prev.filter((u) => u.id !== user.id))}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive" onClick={() => setUsers((prev) => prev.filter((u) => u.id !== user.id))}>
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>
@@ -134,23 +134,23 @@ const UserManagement = () => {
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md rounded-2xl">
           <DialogHeader>
-            <DialogTitle>{editingUser ? "ویرایش کاربر" : "افزودن کاربر جدید"}</DialogTitle>
+            <DialogTitle className="text-lg">{editingUser ? "ویرایش کاربر" : "افزودن کاربر جدید"}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>نام</Label>
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="نام کاربر" />
+          <div className="space-y-5 py-4">
+            <div className="space-y-3">
+              <Label className="label-subtle">نام</Label>
+              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="نام کاربر" className="input-premium h-11 rounded-xl" />
             </div>
-            <div className="space-y-2">
-              <Label>ایمیل</Label>
-              <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@example.com" dir="ltr" />
+            <div className="space-y-3">
+              <Label className="label-subtle">ایمیل</Label>
+              <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@example.com" dir="ltr" className="input-premium h-11 rounded-xl" />
             </div>
-            <div className="space-y-2">
-              <Label>نقش</Label>
+            <div className="space-y-3">
+              <Label className="label-subtle">نقش</Label>
               <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="admin">مدیر</SelectItem>
                   <SelectItem value="moderator">ناظر</SelectItem>
@@ -159,9 +159,9 @@ const UserManagement = () => {
               </Select>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>انصراف</Button>
-            <Button onClick={handleSave}>ذخیره</Button>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setDialogOpen(false)} className="rounded-xl">انصراف</Button>
+            <Button onClick={handleSave} className="btn-hover rounded-xl">ذخیره</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

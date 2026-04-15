@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, GripVertical, Plus, Pencil, Trash2, ChevronDown } from "lucide-react";
+import { Menu, GripVertical, Plus, Pencil, Trash2 } from "lucide-react";
 import AdminLayout from "@/components/AdminLayout";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
@@ -101,21 +101,21 @@ const MenuBuilder = () => {
     <>
       <div
         className={cn(
-          "flex items-center gap-3 px-4 py-3 border-b last:border-b-0 hover:bg-muted/50 transition-colors",
+          "flex items-center gap-3 px-5 py-3.5 border-b border-border/40 last:border-b-0 hover:bg-muted/40 transition-all duration-200 group",
         )}
-        style={{ paddingRight: `${1 + depth * 1.5}rem` }}
+        style={{ paddingRight: `${1.25 + depth * 1.5}rem` }}
       >
-        <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab shrink-0" />
+        <GripVertical className="w-4 h-4 text-muted-foreground/50 cursor-grab shrink-0 group-hover:text-muted-foreground transition-colors" />
         <span className="flex-1 text-sm font-medium">{item.title}</span>
-        <span className="text-xs text-muted-foreground font-mono">{item.route || "—"}</span>
-        <div className="flex gap-1">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openCreate(item.id)}>
+        <span className="text-xs text-muted-foreground font-mono bg-muted/50 px-2 py-0.5 rounded-md">{item.route || "—"}</span>
+        <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => openCreate(item.id)}>
             <Plus className="w-3.5 h-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(item)}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => openEdit(item)}>
             <Pencil className="w-3.5 h-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setMenuItems((prev) => deleteItem(prev, item.id))}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive" onClick={() => setMenuItems((prev) => deleteItem(prev, item.id))}>
             <Trash2 className="w-3.5 h-3.5" />
           </Button>
         </div>
@@ -136,7 +136,7 @@ const MenuBuilder = () => {
         onAction={() => openCreate()}
       />
 
-      <div className="card-surface">
+      <div className="card-surface overflow-hidden">
         {menuItems.length === 0 ? (
           <EmptyState
             icon={Menu}
@@ -151,24 +151,24 @@ const MenuBuilder = () => {
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md rounded-2xl">
           <DialogHeader>
-            <DialogTitle>{editingItem ? "ویرایش منو" : "افزودن منو جدید"}</DialogTitle>
+            <DialogTitle className="text-lg">{editingItem ? "ویرایش منو" : "افزودن منو جدید"}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>عنوان</Label>
-              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="عنوان منو" />
+          <div className="space-y-5 py-4">
+            <div className="space-y-3">
+              <Label className="label-subtle">عنوان</Label>
+              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="عنوان منو" className="input-premium h-11 rounded-xl" />
             </div>
-            <div className="space-y-2">
-              <Label>مسیر (Route)</Label>
-              <Input value={form.route} onChange={(e) => setForm({ ...form, route: e.target.value })} placeholder="/example" dir="ltr" />
+            <div className="space-y-3">
+              <Label className="label-subtle">مسیر (Route)</Label>
+              <Input value={form.route} onChange={(e) => setForm({ ...form, route: e.target.value })} placeholder="/example" dir="ltr" className="input-premium h-11 rounded-xl" />
             </div>
             {!editingItem && flatItems(menuItems).length > 0 && (
-              <div className="space-y-2">
-                <Label>والد (اختیاری)</Label>
+              <div className="space-y-3">
+                <Label className="label-subtle">والد (اختیاری)</Label>
                 <Select value={form.parentId} onValueChange={(v) => setForm({ ...form, parentId: v })}>
-                  <SelectTrigger><SelectValue placeholder="بدون والد (ریشه)" /></SelectTrigger>
+                  <SelectTrigger className="h-11 rounded-xl"><SelectValue placeholder="بدون والد (ریشه)" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">بدون والد</SelectItem>
                     {flatItems(menuItems).map((i) => (
@@ -179,9 +179,9 @@ const MenuBuilder = () => {
               </div>
             )}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>انصراف</Button>
-            <Button onClick={handleSave}>ذخیره</Button>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setDialogOpen(false)} className="rounded-xl">انصراف</Button>
+            <Button onClick={handleSave} className="btn-hover rounded-xl">ذخیره</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
