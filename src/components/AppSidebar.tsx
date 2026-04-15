@@ -80,14 +80,11 @@ const SidebarItem = ({ item, collapsed, onNavigate }: { item: MenuItem; collapse
       className={cn(
         "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 relative",
         isActive
-          ? "bg-primary text-primary-foreground font-medium shadow-md"
-          : "text-sidebar-foreground hover:bg-sidebar-accent hover:translate-x-[-3px]"
+          ? "bg-primary text-primary-foreground font-medium"
+          : "text-sidebar-foreground hover:bg-sidebar-accent"
       )}
+      style={isActive ? { boxShadow: '0 2px 8px hsl(152 55% 42% / 0.3)' } : undefined}
     >
-      {/* Active indicator bar */}
-      {isActive && (
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-primary-foreground/50 -mr-3" />
-      )}
       <Icon className={cn(
         "w-5 h-5 shrink-0 transition-all duration-200",
         !isActive && "group-hover:scale-110 group-hover:text-primary"
@@ -124,15 +121,14 @@ const AppSidebar = ({ open, onClose }: AppSidebarProps) => {
 
       <aside
         className={cn(
-          "fixed top-0 right-0 h-full z-50 bg-card flex flex-col transition-all duration-300 ease-out border-l border-border/50",
+          "fixed top-0 right-0 h-full z-50 bg-card flex flex-col transition-all duration-300 ease-out border-l border-border/40",
           "lg:sticky lg:top-0 lg:z-auto lg:h-screen",
           collapsed && !isMobile ? "w-[72px]" : "w-[260px]",
           open ? "translate-x-0" : "translate-x-full lg:translate-x-0"
         )}
-        style={{ boxShadow: "var(--shadow-sidebar)" }}
+        style={{ boxShadow: '-4px 0 20px rgba(0,0,0,0.05)' }}
       >
-        {/* Header */}
-        <div className="h-[60px] flex items-center justify-between px-4 border-b border-border/50">
+        <div className="h-[60px] flex items-center justify-between px-4 border-b border-border/40">
           {(!collapsed || isMobile) && (
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm">
@@ -160,15 +156,13 @@ const AppSidebar = ({ open, onClose }: AppSidebarProps) => {
           </Button>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
           {defaultMenuItems.map((item) => (
             <SidebarItem key={item.id} item={item} collapsed={collapsed && !isMobile} onNavigate={handleNavigate} />
           ))}
         </nav>
 
-        {/* Footer */}
-        <div className="p-3 border-t border-border/50">
+        <div className="p-3 border-t border-border/40">
           {(!collapsed || isMobile) ? (
             <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/20 to-primary/8 flex items-center justify-center shrink-0 border border-primary/10">

@@ -15,7 +15,10 @@ interface TopBarProps {
 
 const TopBar = ({ onToggleSidebar }: TopBarProps) => {
   return (
-    <header className="h-[60px] bg-card/70 backdrop-blur-xl border-b border-border/50 flex items-center px-4 lg:px-6 gap-4 sticky top-0 z-30" style={{ boxShadow: 'var(--shadow-xs)' }}>
+    <header
+      className="h-[60px] bg-card/80 backdrop-blur-xl border-b border-border/50 flex items-center px-4 lg:px-6 gap-4 sticky top-0 z-30"
+      style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}
+    >
       <Button variant="ghost" size="icon" onClick={onToggleSidebar} className="lg:hidden h-9 w-9 rounded-xl">
         <Menu className="w-5 h-5" />
       </Button>
@@ -30,7 +33,7 @@ const TopBar = ({ onToggleSidebar }: TopBarProps) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-xl hover:bg-muted/80 transition-colors">
           <Bell className="w-[18px] h-[18px]" />
           <span className="absolute top-1.5 left-1.5 w-2.5 h-2.5 bg-destructive rounded-full animate-pulse-soft ring-2 ring-card" />
@@ -45,11 +48,17 @@ const TopBar = ({ onToggleSidebar }: TopBarProps) => {
               <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-52 rounded-xl p-1.5" style={{ boxShadow: 'var(--shadow-dropdown)' }}>
-            <DropdownMenuItem className="rounded-lg h-9 text-sm cursor-pointer">پروفایل</DropdownMenuItem>
-            <DropdownMenuItem className="rounded-lg h-9 text-sm cursor-pointer">تنظیمات</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive rounded-lg h-9 text-sm cursor-pointer">خروج</DropdownMenuItem>
+          <DropdownMenuContent align="end" sideOffset={8} className="w-52 rounded-xl p-1.5" style={{ boxShadow: '0 10px 30px rgba(0,0,0,0.08)' }}>
+            <DropdownMenuItem className="rounded-lg h-10 text-sm cursor-pointer justify-end px-3 hover:bg-muted/60 transition-colors">
+              پروفایل
+            </DropdownMenuItem>
+            <DropdownMenuItem className="rounded-lg h-10 text-sm cursor-pointer justify-end px-3 hover:bg-muted/60 transition-colors">
+              تنظیمات
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="my-1" />
+            <DropdownMenuItem className="text-destructive rounded-lg h-10 text-sm cursor-pointer justify-end px-3 hover:bg-destructive/8 transition-colors">
+              خروج
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
