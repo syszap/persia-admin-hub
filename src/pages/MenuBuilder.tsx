@@ -170,7 +170,7 @@ const MenuBuilder = () => {
                 <Select value={form.parentId} onValueChange={(v) => setForm({ ...form, parentId: v })}>
                   <SelectTrigger className="h-11 rounded-xl"><SelectValue placeholder="بدون والد (ریشه)" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">بدون والد</SelectItem>
+                    <SelectItem value="__none__">بدون والد</SelectItem>
                     {flatItems(menuItems).map((i) => (
                       <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>
                     ))}
