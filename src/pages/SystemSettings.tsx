@@ -103,35 +103,23 @@ const SystemSettings = () => {
       <PageHeader title="تنظیمات سیستم" description="مدیریت و پیکربندی مرکزی سیستم" icon={Settings} />
 
       <Tabs defaultValue="general" dir="rtl" className="w-full">
-        <TabsList className="w-full sm:w-auto flex overflow-x-auto bg-muted/50 rounded-xl p-1 mb-6 h-auto flex-wrap sm:flex-nowrap gap-1">
-          <TabsTrigger
-            value="general"
-            className="flex-1 sm:flex-none rounded-lg px-4 py-2.5 text-sm font-medium transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-          >
-            <Settings className="w-4 h-4 ml-2" />
-            تنظیمات عمومی
-          </TabsTrigger>
-          <TabsTrigger
-            value="users"
-            className="flex-1 sm:flex-none rounded-lg px-4 py-2.5 text-sm font-medium transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-          >
-            <Users className="w-4 h-4 ml-2" />
-            مدیریت کاربران
-          </TabsTrigger>
-          <TabsTrigger
-            value="roles"
-            className="flex-1 sm:flex-none rounded-lg px-4 py-2.5 text-sm font-medium transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-          >
-            <Shield className="w-4 h-4 ml-2" />
-            نقش‌ها و دسترسی‌ها
-          </TabsTrigger>
-          <TabsTrigger
-            value="reports"
-            className="flex-1 sm:flex-none rounded-lg px-4 py-2.5 text-sm font-medium transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-          >
-            <BarChart3 className="w-4 h-4 ml-2" />
-            مدیریت گزارشات
-          </TabsTrigger>
+        <TabsList className="w-full sm:w-auto flex overflow-x-auto bg-card rounded-2xl p-1.5 mb-8 h-auto flex-wrap sm:flex-nowrap gap-1 border border-border/50" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+          {[
+            { value: "general", icon: Settings, label: "تنظیمات عمومی" },
+            { value: "users", icon: Users, label: "مدیریت کاربران" },
+            { value: "roles", icon: Shield, label: "نقش‌ها و دسترسی‌ها" },
+            { value: "reports", icon: BarChart3, label: "مدیریت گزارشات" },
+          ].map((tab) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="flex-1 sm:flex-none rounded-xl px-5 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-muted/60 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:font-semibold data-[state=active]:shadow-md hover:scale-[1.01] active:scale-[0.98]"
+              style={{ transition: 'all 0.2s ease' }}
+            >
+              <tab.icon className="w-4 h-4 ml-2" />
+              {tab.label}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         <TabsContent value="general"><GeneralTab /></TabsContent>
