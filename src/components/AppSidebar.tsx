@@ -27,9 +27,6 @@ interface MenuItem {
 const defaultMenuItems: MenuItem[] = [
   { id: "dashboard", title: "داشبورد", icon: LayoutDashboard, path: "/" },
   { id: "menus", title: "مدیریت منوها", icon: MenuIcon, path: "/menus" },
-  { id: "reports", title: "مدیریت گزارشات", icon: BarChart3, path: "/reports" },
-  { id: "users", title: "مدیریت کاربران", icon: Users, path: "/users" },
-  { id: "roles", title: "نقش‌ها و دسترسی‌ها", icon: Shield, path: "/roles" },
   { id: "settings", title: "تنظیمات سیستم", icon: Settings, path: "/settings" },
 ];
 
