@@ -1,5 +1,15 @@
 import { useState } from "react";
-import { BarChart3, ChevronRight, ChevronLeft, Download } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import {
+  BarChart3,
+  ChevronRight,
+  ChevronLeft,
+  Download,
+  AlertTriangle,
+  FileText,
+  TrendingDown,
+  Clock,
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import AdminLayout from "@/components/AdminLayout";
 import PageHeader from "@/components/PageHeader";
@@ -42,9 +52,22 @@ interface ApiResponse {
   hasMore: boolean;
 }
 
+interface SummaryAlert {
+  type: 'high-risk';
+  message: string;
+}
+
+interface Summary {
+  totalCount: number;
+  totalAmount: number;
+  overdueCount: number;
+  overdueAmount: number;
+  alerts: SummaryAlert[];
+}
+
 const LIMIT = 100;
 
-const faNum = new Intl.NumberFormat('fa-IR');
+const faNum  = new Intl.NumberFormat('fa-IR');
 const faDate = new Intl.DateTimeFormat('fa-IR');
 
 const formatNumber = (n: number | null | undefined): string => {
@@ -54,38 +77,38 @@ const formatNumber = (n: number | null | undefined): string => {
 
 const formatDate = (dateStr: string | null): string => {
   if (!dateStr) return '—';
-  try {
-    return faDate.format(new Date(dateStr));
-  } catch {
-    return dateStr;
-  }
+  try { return faDate.format(new Date(dateStr)); } catch { return dateStr; }
 };
 
-const isOverdue = (dateStr: string | null): boolean => {
-  if (!dateStr) return false;
-  return dateStr < new Date().toISOString().slice(0, 10);
-};
+const isOverdue = (dateStr: string | null): boolean =>
+  !!dateStr && dateStr < new Date().toISOString().slice(0, 10);
 
 const ReturnedCheques = () => {
+  const [searchParams] = useSearchParams();
+  const initialSearch = searchParams.get('search') ?? '';
+
   const [page, setPage] = useState(1);
-
-  // Input state — what the user is typing
-  const [search, setSearch] = useState('');
+  const [search,   setSearch]   = useState(initialSearch);
   const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const [toDate,   setToDate]   = useState('');
 
-  // Applied state — drives the API query; only updates on "اعمال فیلتر"
-  const [appliedSearch, setAppliedSearch] = useState('');
+  const [appliedSearch,   setAppliedSearch]   = useState(initialSearch);
   const [appliedFromDate, setAppliedFromDate] = useState('');
-  const [appliedToDate, setAppliedToDate] = useState('');
+  const [appliedToDate,   setAppliedToDate]   = useState('');
 
   const buildUrl = (p: number) => {
     const params = new URLSearchParams({ page: String(p), limit: String(LIMIT) });
-    if (appliedSearch) params.set('search', appliedSearch);
+    if (appliedSearch)   params.set('search',   appliedSearch);
     if (appliedFromDate) params.set('fromDate', appliedFromDate);
-    if (appliedToDate) params.set('toDate', appliedToDate);
+    if (appliedToDate)   params.set('toDate',   appliedToDate);
     return `/api/returned-cheques?${params.toString()}`;
   };
+
+  const { data: summary } = useQuery<Summary>({
+    queryKey: ['returned-cheques-summary'],
+    queryFn: () => fetch('/api/returned-cheques/summary').then((r) => r.json()),
+    staleTime: 60_000,
+  });
 
   const { data, isLoading, isError } = useQuery<ApiResponse>({
     queryKey: ['returned-cheques', page, appliedSearch, appliedFromDate, appliedToDate],
@@ -105,16 +128,14 @@ const ReturnedCheques = () => {
 
   const handleExport = async () => {
     const params = new URLSearchParams();
-    if (appliedSearch) params.set('search', appliedSearch);
+    if (appliedSearch)   params.set('search',   appliedSearch);
     if (appliedFromDate) params.set('fromDate', appliedFromDate);
-    if (appliedToDate) params.set('toDate', appliedToDate);
+    if (appliedToDate)   params.set('toDate',   appliedToDate);
     const response = await fetch(`/api/returned-cheques/export?${params.toString()}`);
     const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'returned-cheques.xlsx';
-    a.click();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'returned-cheques.xlsx'; a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -125,6 +146,63 @@ const ReturnedCheques = () => {
         description="مشاهده چک‌های برگشتی پرداخت نشده"
         icon={BarChart3}
       />
+
+      {/* Alert banner */}
+      {summary && summary.alerts.length > 0 && (
+        <div className="mb-4 p-4 rounded-xl border border-destructive/20 bg-destructive/5 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            {summary.alerts.map((alert, i) => (
+              <p key={i} className="text-sm text-destructive">{alert.message}</p>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Summary cards */}
+      {summary && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="card-surface flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <FileText className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-0.5">مجموع چک‌های برگشتی</p>
+              <p className="text-xl font-bold text-foreground">{formatNumber(summary.totalCount)}</p>
+            </div>
+          </div>
+
+          <div className="card-surface flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <BarChart3 className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-0.5">مجموع مبلغ چک‌ها</p>
+              <p className="text-xl font-bold text-foreground">{formatNumber(summary.totalAmount)}</p>
+            </div>
+          </div>
+
+          <div className="card-surface flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
+              <Clock className="w-5 h-5 text-destructive" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-0.5">چک‌های سررسید گذشته</p>
+              <p className="text-xl font-bold text-destructive">{formatNumber(summary.overdueCount)}</p>
+            </div>
+          </div>
+
+          <div className="card-surface flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
+              <TrendingDown className="w-5 h-5 text-destructive" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-0.5">مبلغ سررسید گذشته</p>
+              <p className="text-xl font-bold text-destructive">{formatNumber(summary.overdueAmount)}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Filter bar */}
       <div className="card-surface mb-6">
@@ -176,19 +254,16 @@ const ReturnedCheques = () => {
             در حال بارگذاری...
           </div>
         )}
-
         {isError && (
           <div className="flex items-center justify-center py-16 text-destructive text-sm">
             خطا در دریافت اطلاعات. لطفاً دوباره تلاش کنید.
           </div>
         )}
-
         {data && data.data.length === 0 && (
           <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">
             هیچ چک برگشتی‌ای یافت نشد.
           </div>
         )}
-
         {data && data.data.length > 0 && (
           <Table>
             <TableHeader>
@@ -245,25 +320,17 @@ const ReturnedCheques = () => {
       {data && (data.hasMore || page > 1) && (
         <div className="flex items-center justify-between mt-4 px-1">
           <Button
-            variant="outline"
-            size="sm"
-            className="rounded-xl"
-            onClick={() => setPage((p) => p - 1)}
-            disabled={page === 1}
+            variant="outline" size="sm" className="rounded-xl"
+            onClick={() => setPage((p) => p - 1)} disabled={page === 1}
           >
-            <ChevronRight className="w-4 h-4 ml-1" />
-            قبلی
+            <ChevronRight className="w-4 h-4 ml-1" />قبلی
           </Button>
           <span className="text-sm text-muted-foreground">صفحه {page}</span>
           <Button
-            variant="outline"
-            size="sm"
-            className="rounded-xl"
-            onClick={() => setPage((p) => p + 1)}
-            disabled={!data.hasMore}
+            variant="outline" size="sm" className="rounded-xl"
+            onClick={() => setPage((p) => p + 1)} disabled={!data.hasMore}
           >
-            بعدی
-            <ChevronLeft className="w-4 h-4 mr-1" />
+            بعدی<ChevronLeft className="w-4 h-4 mr-1" />
           </Button>
         </div>
       )}
