@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { setToken } from "@/lib/api";
 import logo from "@/assets/logo.png";
 
 const Login = () => {
@@ -23,10 +24,24 @@ const Login = () => {
       return;
     }
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "خطا در ورود به سیستم");
+        return;
+      }
+      setToken(data.token);
       navigate("/");
-    }, 1200);
+    } catch {
+      setError("خطا در اتصال به سرور");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { apiFetch } from "@/lib/api";
 
 interface CustomerRow {
   customerName: string;
@@ -36,7 +37,7 @@ const ReturnedChequesCustomers = () => {
   const { data, isLoading, isError } = useQuery<CustomerRow[]>({
     queryKey: ['returned-cheques-by-customer'],
     queryFn: () =>
-      fetch('/api/returned-cheques/by-customer').then((r) => {
+      apiFetch('/api/returned-cheques/by-customer').then((r) => {
         if (!r.ok) throw new Error('API error');
         return r.json();
       }),

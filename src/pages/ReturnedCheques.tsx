@@ -25,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { apiFetch } from "@/lib/api";
 
 interface ReturnedCheque {
   VoucherRef: number;
@@ -106,14 +107,14 @@ const ReturnedCheques = () => {
 
   const { data: summary } = useQuery<Summary>({
     queryKey: ['returned-cheques-summary'],
-    queryFn: () => fetch('/api/returned-cheques/summary').then((r) => r.json()),
+    queryFn: () => apiFetch('/api/returned-cheques/summary').then((r) => r.json()),
     staleTime: 60_000,
   });
 
   const { data, isLoading, isError } = useQuery<ApiResponse>({
     queryKey: ['returned-cheques', page, appliedSearch, appliedFromDate, appliedToDate],
     queryFn: () =>
-      fetch(buildUrl(page)).then((r) => {
+      apiFetch(buildUrl(page)).then((r) => {
         if (!r.ok) throw new Error('API error');
         return r.json();
       }),
@@ -131,7 +132,7 @@ const ReturnedCheques = () => {
     if (appliedSearch)   params.set('search',   appliedSearch);
     if (appliedFromDate) params.set('fromDate', appliedFromDate);
     if (appliedToDate)   params.set('toDate',   appliedToDate);
-    const response = await fetch(`/api/returned-cheques/export?${params.toString()}`);
+    const response = await apiFetch(`/api/returned-cheques/export?${params.toString()}`);
     const blob = await response.blob();
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
