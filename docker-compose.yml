@@ -1,0 +1,72 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: persia_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PG_DATABASE:-persia_admin}
+      POSTGRES_USER: ${PG_USER:-postgres}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-strongpassword}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-postgres} -d ${PG_DATABASE:-persia_admin}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  app:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: persia_app
+    restart: unless-stopped
+    environment:
+      PG_HOST: postgres
+      PG_PORT: ${PG_PORT:-5432}
+      PG_DATABASE: ${PG_DATABASE:-persia_admin}
+      PG_USER: ${PG_USER:-postgres}
+      PG_PASSWORD: ${PG_PASSWORD:-strongpassword}
+      JWT_SECRET: ${JWT_SECRET:-supersecret}
+      PORT: ${PORT:-3001}
+      FRONTEND_URL: ${FRONTEND_URL:-}
+      SQL_SERVER_CONN: ${SQL_SERVER_CONN:-}
+    ports:
+      - "${PORT:-3001}:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app_network
+
+  pgbackups:
+    image: prodrigestivill/postgres-backup-local:16-alpine
+    container_name: persia_pgbackups
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ${PG_DATABASE:-persia_admin}
+      POSTGRES_USER: ${PG_USER:-postgres}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-strongpassword}
+      SCHEDULE: "0 */6 * * *"
+      BACKUP_KEEP_DAYS: 7
+      BACKUP_KEEP_WEEKS: 4
+      BACKUP_KEEP_MONTHS: 6
+    volumes:
+      - pg_backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app_network
+
+volumes:
+  pg_data:
+  pg_backups:
+
+networks:
+  app_network:
+    driver: bridge
