@@ -34,15 +34,21 @@ function parseOdbcString(connStr: string): sql.config {
   };
 }
 
-let pool: sql.ConnectionPool | null = null;
+// Promise-based singleton: concurrent callers share one pending connection;
+// on failure the promise is cleared so the next call can retry.
+let poolPromise: Promise<sql.ConnectionPool> | null = null;
 
-export async function getPool(): Promise<sql.ConnectionPool> {
-  if (pool && pool.connected) return pool;
-
-  const connStr = process.env.SQL_SERVER_CONN;
-  if (!connStr) throw new Error('SQL_SERVER_CONN environment variable is not set');
-
-  const config = parseOdbcString(connStr);
-  pool = await sql.connect(config);
-  return pool;
+export function getPool(): Promise<sql.ConnectionPool> {
+  if (!poolPromise) {
+    const connStr = process.env.SQL_SERVER_CONN;
+    if (!connStr) {
+      return Promise.reject(new Error('SQL_SERVER_CONN environment variable is not set'));
+    }
+    const config = parseOdbcString(connStr);
+    poolPromise = sql.connect(config).catch((err) => {
+      poolPromise = null;
+      throw err;
+    });
+  }
+  return poolPromise;
 }

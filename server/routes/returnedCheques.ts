@@ -1,8 +1,11 @@
 import { Router, Request, Response } from 'express';
+import sql from 'mssql';
 import { getPool } from '../db';
 
 const router = Router();
 
+// Original query is unchanged. ORDER BY + OFFSET/FETCH appended for SQL-level pagination.
+// @pageOffset and @fetchCount are injected as typed parameters (no string interpolation).
 const QUERY = `
 WITH UnpaidFollowUps AS (
     SELECT FollowUpNumber, SUM(Debit) - SUM(Credit) AS TotalBalance
@@ -78,6 +81,8 @@ OUTER APPLY (
     WHERE pc.VoucherRef = vi.VoucherRef
 ) pc
 WHERE vi.SLRef = 248
+ORDER BY vi.VoucherRef
+OFFSET @pageOffset ROWS FETCH NEXT @fetchCount ROWS ONLY
 `;
 
 router.get('/', async (req: Request, res: Response): Promise<void> => {
@@ -88,24 +93,34 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
   const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 500) : 100;
   const offset = (page - 1) * limit;
 
+  const start = Date.now();
+
   try {
     const pool = await getPool();
-    const result = await pool.request().query(QUERY);
 
-    const total = result.recordset.length;
-    const data = result.recordset.slice(offset, offset + limit);
+    // Fetch limit+1 rows to determine hasMore without a separate COUNT query
+    const result = await pool
+      .request()
+      .input('pageOffset', sql.Int, offset)
+      .input('fetchCount', sql.Int, limit + 1)
+      .query(QUERY);
 
-    res.json({
-      data,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
+    const elapsed = Date.now() - start;
+
+    if (elapsed > 2000) {
+      console.warn(
+        `[returned-cheques] slow query: ${elapsed}ms (page=${page}, limit=${limit}, offset=${offset})`
+      );
+    }
+
+    const rows = result.recordset;
+    const hasMore = rows.length > limit;
+    const data = hasMore ? rows.slice(0, limit) : rows;
+
+    res.json({ data, page, limit, hasMore });
   } catch (err) {
-    console.error('[returned-cheques] query error:', err);
+    const elapsed = Date.now() - start;
+    console.error(`[returned-cheques] query failed after ${elapsed}ms:`, err);
     res.status(500).json({ error: 'Failed to fetch returned cheques data' });
   }
 });
