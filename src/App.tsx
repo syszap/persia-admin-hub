@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Login from "./pages/Login";
 import Index from "./pages/Index";
 import MenuBuilder from "./pages/MenuBuilder";
@@ -24,14 +25,14 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Index />} />
-          <Route path="/menus" element={<MenuBuilder />} />
-          <Route path="/reports" element={<ReportBuilder />} />
-          <Route path="/users" element={<UserManagement />} />
-          <Route path="/roles" element={<RolesPermissions />} />
-          <Route path="/settings" element={<SystemSettings />} />
-          <Route path="/returned-cheques" element={<ReturnedCheques />} />
-          <Route path="/returned-cheques/customers" element={<ReturnedChequesCustomers />} />
+          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+          <Route path="/menus" element={<ProtectedRoute><MenuBuilder /></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><ReportBuilder /></ProtectedRoute>} />
+          <Route path="/users" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
+          <Route path="/roles" element={<ProtectedRoute><RolesPermissions /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><SystemSettings /></ProtectedRoute>} />
+          <Route path="/returned-cheques" element={<ProtectedRoute><ReturnedCheques /></ProtectedRoute>} />
+          <Route path="/returned-cheques/customers" element={<ProtectedRoute><ReturnedChequesCustomers /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
