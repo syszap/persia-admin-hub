@@ -11,6 +11,7 @@ import UserManagement from "./pages/UserManagement";
 import RolesPermissions from "./pages/RolesPermissions";
 import SystemSettings from "./pages/SystemSettings";
 import ReturnedCheques from "./pages/ReturnedCheques";
+import ReturnedChequesCustomers from "./pages/ReturnedChequesCustomers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/roles" element={<RolesPermissions />} />
           <Route path="/settings" element={<SystemSettings />} />
           <Route path="/returned-cheques" element={<ReturnedCheques />} />
+          <Route path="/returned-cheques/customers" element={<ReturnedChequesCustomers />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

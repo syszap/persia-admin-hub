@@ -28,6 +28,7 @@ const defaultMenuItems: MenuItem[] = [
   { id: "dashboard", title: "داشبورد", icon: LayoutDashboard, path: "/" },
   { id: "menus", title: "مدیریت منوها", icon: MenuIcon, path: "/menus" },
   { id: "returned-cheques", title: "چک برگشتی", icon: BarChart3, path: "/returned-cheques" },
+  { id: "returned-cheques-customers", title: "مشتریان چک برگشتی", icon: Users, path: "/returned-cheques/customers" },
   { id: "settings", title: "تنظیمات سیستم", icon: Settings, path: "/settings" },
 ];
 
