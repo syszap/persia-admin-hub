@@ -27,6 +27,7 @@ interface MenuItem {
 const defaultMenuItems: MenuItem[] = [
   { id: "dashboard", title: "داشبورد", icon: LayoutDashboard, path: "/" },
   { id: "menus", title: "مدیریت منوها", icon: MenuIcon, path: "/menus" },
+  { id: "returned-cheques", title: "چک برگشتی", icon: BarChart3, path: "/returned-cheques" },
   { id: "settings", title: "تنظیمات سیستم", icon: Settings, path: "/settings" },
 ];
 

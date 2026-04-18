@@ -10,6 +10,7 @@ import ReportBuilder from "./pages/ReportBuilder";
 import UserManagement from "./pages/UserManagement";
 import RolesPermissions from "./pages/RolesPermissions";
 import SystemSettings from "./pages/SystemSettings";
+import ReturnedCheques from "./pages/ReturnedCheques";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/users" element={<UserManagement />} />
           <Route path="/roles" element={<RolesPermissions />} />
           <Route path="/settings" element={<SystemSettings />} />
+          <Route path="/returned-cheques" element={<ReturnedCheques />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
