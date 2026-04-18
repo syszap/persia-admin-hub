@@ -1,54 +1,63 @@
-# 🧾 Persia Admin Hub — Returned Cheques Module
+# 🧾 Persia Admin Hub — Returned Cheques System
 
-A production-ready financial monitoring module for managing **returned cheques (چک برگشتی)** with:
+A production-grade financial monitoring system for managing **returned cheques (چک برگشتی)** with:
 
-* Real-time SQL Server integration
-* Advanced filtering & analytics
-* Risk scoring & alerts
+* SQL Server → PostgreSQL data replication
+* Background sync (cron-based)
+* Authentication (JWT)
+* Advanced analytics (risk, alerts, grouping)
 * Excel export
-* Enterprise dashboard
+* Enterprise-ready architecture
 
 ---
 
-# 🚀 Features
+# 🚀 Key Features
 
-## ✅ Core
+## 🧾 Core
 
-* مشاهده لیست چک‌های برگشتی
-* فیلتر بر اساس مشتری، تاریخ، شماره چک
-* pagination سمت سرور (performance بالا)
-* نمایش وضعیت سررسید (overdue)
+* مشاهده چک‌های برگشتی
+* فیلتر پیشرفته (مشتری، تاریخ، شماره چک)
+* pagination سمت سرور
+* نمایش وضعیت سررسید
 
-## 📊 Advanced (Enterprise)
+## 📊 Advanced
 
-* داشبورد خلاصه (مبلغ کل، overdue و ...)
+* داشبورد خلاصه (summary)
 * گروه‌بندی بر اساس مشتری
-* سیستم امتیاز ریسک (Risk Level)
-* Alert هوشمند
+* امتیاز ریسک (Risk Level)
+* Alert خودکار
 * Export به Excel
+
+## 🔐 Security
+
+* سیستم لاگین (JWT)
+* محافظت از تمام API ها
+* عدم دسترسی مستقیم frontend به دیتابیس
 
 ---
 
 # 🏗️ Architecture
 
-```
-Frontend (React + Vite)
+```text
+SQL Server (ERP / Source)
         ↓
-API Layer (Express - BFF)
+Sync Service (Node + Cron)
         ↓
-SQL Server
+PostgreSQL (App Database)
+        ↓
+Express API (JWT Protected)
+        ↓
+React Frontend
 ```
-
-* Frontend هیچ دسترسی مستقیم به دیتابیس ندارد
-* Backend نقش واسط امن (BFF) را دارد
 
 ---
 
 # ⚙️ Requirements
 
 * Node.js >= 18
-* SQL Server
-* npm یا yarn
+* SQL Server (source)
+* PostgreSQL (app database)
+* npm
 
 ---
 
@@ -67,36 +76,55 @@ cd persia-admin-hub
 
 ```bash
 npm install
+cd server
+npm install
 ```
 
 ---
 
-## 3️⃣ Setup Backend (IMPORTANT)
+# 🧠 Environment Setup
+
+Create:
 
 ```bash
 cd server
 cp .env.example .env
 ```
 
-### ✏️ Edit `.env`
+---
+
+## ✏️ Configure `.env`
 
 ```env
-SQL_SERVER_CONN=DRIVER={ODBC Driver 18 for SQL Server};SERVER=172.16.10.9,1433;DATABASE=Shima_sg3;UID=YOUR_USER;PWD=YOUR_PASSWORD;Encrypt=no;TrustServerCertificate=yes;
-FRONTEND_URL=http://localhost:5173
+# SQL Server (Source)
+SQL_SERVER_CONN=DRIVER={ODBC Driver 18 for SQL Server};SERVER=YOUR_SERVER;DATABASE=Shima_sg3;UID=USER;PWD=PASSWORD;Encrypt=no;TrustServerCertificate=yes;
+
+# PostgreSQL (App DB)
+PG_HOST=localhost
+PG_PORT=5432
+PG_DATABASE=persia_admin
+PG_USER=postgres
+PG_PASSWORD=your_password
+
+# Auth
+JWT_SECRET=your_super_secret_key
+
+# App
 PORT=3001
+FRONTEND_URL=http://localhost:5173
 ```
 
 ---
 
-## 4️⃣ Run project
+# 🚀 Run Project
 
-### Terminal 1 — Backend
+## Terminal 1 — Backend
 
 ```bash
 npm run dev:server
 ```
 
-### Terminal 2 — Frontend
+## Terminal 2 — Frontend
 
 ```bash
 npm run dev
@@ -104,107 +132,174 @@ npm run dev
 
 ---
 
-## 🌐 Access
+# 🌐 Access
 
+* Frontend: http://localhost:5173
+* API: http://localhost:3001/api
+
+---
+
+# 🔐 Default Login
+
+After first run:
+
+```text
+username: admin
+password: admin
 ```
-Frontend: http://localhost:5173
-Backend API: http://localhost:3001/api
+
+⚠️ حتماً بعد از ورود تغییر بده
+
+---
+
+# 🔁 Sync System
+
+## ⏱ Schedule
+
+```cron
+*/30 9-18 * * *
 ```
+
+یعنی:
+
+* هر 30 دقیقه
+* بین 9 صبح تا 6 عصر
+
+---
+
+## 🔄 Flow
+
+1. Query از SQL Server اجرا می‌شود
+2. داده‌ها دریافت می‌شوند
+3. در PostgreSQL با UPSERT ذخیره می‌شوند
+
+---
+
+## ⚠️ نکات مهم
+
+* جلوگیری از اجرای همزمان (lock)
+* log کامل (start / end / error)
+* دیتابیس اصلی تحت فشار قرار نمی‌گیرد
+
+---
+
+# 🧠 Database Design
+
+## PostgreSQL Tables
+
+### returned_cheques
+
+* mirror کامل دیتای SQL Server
+* unique key:
+
+```sql
+(voucher_ref, followup_number)
+```
+
+---
+
+### users
+
+* authentication system
+* password به صورت hash ذخیره می‌شود
 
 ---
 
 # 🔌 API Endpoints
 
-## 📄 Get Cheques
+## 🔐 Auth
 
+```http
+POST /api/auth/login
 ```
+
+---
+
+## 📄 Cheques
+
+```http
 GET /api/returned-cheques
 ```
 
-### Query Params:
+Params:
 
-| Param    | Description           |
-| -------- | --------------------- |
-| page     | شماره صفحه            |
-| limit    | تعداد رکورد           |
-| search   | نام مشتری یا شماره چک |
-| fromDate | تاریخ شروع            |
-| toDate   | تاریخ پایان           |
+* page
+* limit
+* search
+* fromDate
+* toDate
 
 ---
 
 ## 📊 Summary
 
-```
+```http
 GET /api/returned-cheques/summary
 ```
 
 ---
 
-## 👥 Group by Customer
+## 👥 By Customer
 
-```
+```http
 GET /api/returned-cheques/by-customer
 ```
 
 ---
 
-## 📥 Export Excel
+## 📥 Export
 
-```
+```http
 GET /api/returned-cheques/export
 ```
 
-* محدود به 5000 رکورد
-* خروجی `.xlsx`
-
 ---
 
-# ⚡ Performance Notes
+# ⚡ Performance
 
-* Pagination در SQL انجام می‌شود (NOT in-memory)
-* Cache داخلی (TTL = 60s)
-* Connection Pool برای SQL Server
-* Query بهینه‌شده برای دیتای حجیم
+* PostgreSQL برای read (سریع)
+* SQL Server فقط برای sync
+* cache داخلی (60s)
+* pagination در سطح SQL
 
 ---
 
 # 🛡️ Security
 
-* اطلاعات دیتابیس فقط در backend
-* استفاده از `.env` (never commit)
-* validate ورودی‌ها در API
-* محدودیت export
+* JWT برای تمام API ها
+* bcrypt برای رمز عبور
+* env-based secrets
+* عدم expose دیتابیس
 
 ---
 
-# 🧠 Risk System
+# ⚠️ Important Notes
 
-| Level     | Condition                                |
-| --------- | ---------------------------------------- |
-| 🔴 High   | overdueAmount > 500M OR overdueCount > 5 |
-| 🟡 Medium | overdueAmount > 50M OR overdueCount > 2  |
-| 🟢 Low    | سایر موارد                               |
+## ⏳ Data Delay
+
+داده‌ها real-time نیستند:
+
+👉 تا 30 دقیقه تاخیر ممکن است وجود داشته باشد
 
 ---
 
-# ⚠️ Alerts
+## 📉 SQL Server Load
 
-سیستم به صورت خودکار alert تولید می‌کند اگر:
-
-* overdueAmount > 2B
-* overdueCount > 20
+* query فقط در sync اجرا می‌شود
+* فشار مستقیم از UI حذف شده
 
 ---
 
 # 📁 Project Structure
 
-```
+```text
 .
-├── src/                  # Frontend (React)
-├── server/               # Backend (Express)
+├── src/                    # React frontend
+├── server/
 │   ├── routes/
-│   ├── db.ts
+│   ├── middleware/
+│   ├── postgres.ts
+│   ├── sync.ts
 │   ├── cache.ts
 │   └── index.ts
 ├── vite.config.ts
@@ -215,29 +310,27 @@ GET /api/returned-cheques/export
 
 # 🧪 Development Tips
 
-* اگر API کار نکرد → اول backend رو چک کن
-* اگر CORS خطا داد → FRONTEND_URL رو بررسی کن
-* اگر query کند شد → index در SQL اضافه کن
+* اگر لاگین کار نکرد → JWT_SECRET رو چک کن
+* اگر دیتا نیومد → sync لاگ‌ها رو ببین
+* اگر کند شد → index در PostgreSQL اضافه کن
 
 ---
 
 # 📈 Future Improvements
 
-* Redis caching
-* Notification (SMS / WhatsApp)
-* n8n automation integration
+* Redis cache
+* Incremental sync (CDC)
+* n8n integration (alerts)
+* SMS / WhatsApp notification
 * AI risk analysis
 
 ---
 
 # 🤝 Contributing
 
-PR ها خوش‌آمدند 🚀
-قبل از ارسال:
-
-* کد تست شده باشد
-* UI تغییر داده نشود (مهم)
+* UI را تغییر ندهید
 * commit message واضح باشد
+* PR قبل از merge بررسی شود
 
 ---
 
@@ -250,4 +343,4 @@ Private / Internal Use
 ## 👨‍💻 Author
 
 Milad Farahani
-GitHub: https://github.com/syszap
+https://github.com/syszap
