@@ -28,8 +28,8 @@ const LoginPage = () => {
   const onSubmit = async (values: LoginFormValues) => {
     setServerError('');
     try {
-      const { token, user } = await authService.login(values);
-      setAuth(token, user);
+      const { token, refreshToken, user } = await authService.login(values);
+      setAuth(token, refreshToken ?? '', user);
       navigate(from, { replace: true });
     } catch (err: unknown) {
       const msg =
