@@ -1,16 +1,19 @@
-import axios from 'axios';
-import type { AuthResponse, LoginCredentials } from '../types/auth.types';
-
-// Auth uses a dedicated Axios instance (no auth interceptor — avoids circular deps)
-const authClient = axios.create({
-  baseURL: '/api',
-  headers: { 'Content-Type': 'application/json' },
-  timeout: 10_000,
-});
+import { authClient } from '@/services/api/client';
+import type { AuthResponse, LoginCredentials, RefreshResponse } from '../types/auth.types';
 
 export const authService = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     const { data } = await authClient.post<AuthResponse>('/auth/login', credentials);
     return data;
+  },
+
+  refresh: async (refreshToken: string): Promise<RefreshResponse> => {
+    const { data } = await authClient.post<RefreshResponse>('/auth/refresh', { refreshToken });
+    return data;
+  },
+
+  logout: async (): Promise<void> => {
+    // Invalidate the refresh token server-side (best-effort)
+    await authClient.post('/auth/logout').catch(() => undefined);
   },
 };

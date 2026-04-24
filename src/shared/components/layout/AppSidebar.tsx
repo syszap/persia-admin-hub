@@ -15,6 +15,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import type { Permission } from '@/features/auth/types/auth.types';
 import logo from '@/assets/logo.png';
 
 interface NavItem {
@@ -22,6 +23,9 @@ interface NavItem {
   title: string;
   icon: React.ElementType;
   path?: string;
+  /** PBAC: hide item when user lacks this permission */
+  requiredPermission?: Permission;
+  /** Legacy fallback kept for top-level grouping nodes */
   requiredRole?: 'admin' | 'moderator' | 'user';
   children?: NavItem[];
 }
@@ -38,9 +42,9 @@ const NAV_ITEMS: NavItem[] = [
       { id: 'cheques-customers', title: 'مشتریان', icon: Users, path: '/returned-cheques/customers' },
     ],
   },
-  { id: 'users', title: 'مدیریت کاربران', icon: Users, path: '/users', requiredRole: 'admin' },
-  { id: 'roles', title: 'نقش‌ها و دسترسی‌ها', icon: Shield, path: '/roles', requiredRole: 'admin' },
-  { id: 'settings', title: 'تنظیمات سیستم', icon: Settings, path: '/settings', requiredRole: 'admin' },
+  { id: 'users', title: 'مدیریت کاربران', icon: Users, path: '/users', requiredPermission: 'user.view' },
+  { id: 'roles', title: 'نقش‌ها و دسترسی‌ها', icon: Shield, path: '/roles', requiredPermission: 'role.view' },
+  { id: 'settings', title: 'تنظیمات سیستم', icon: Settings, path: '/settings', requiredPermission: 'settings.view' },
 ];
 
 const SidebarItem = ({
@@ -53,13 +57,14 @@ const SidebarItem = ({
   onNavigate?: () => void;
 }) => {
   const location = useLocation();
-  const { hasRole } = useAuthStore();
+  const { hasRole, hasPermission } = useAuthStore();
   const [expanded, setExpanded] = useState(false);
   const hasChildren = !!item.children?.length;
   const isActive = item.path === location.pathname;
   const Icon = item.icon;
 
-  if (item.requiredRole && !hasRole(item.requiredRole)) return null;
+  if (item.requiredPermission && !hasPermission(item.requiredPermission)) return null;
+  if (!item.requiredPermission && item.requiredRole && !hasRole(item.requiredRole)) return null;
 
   if (hasChildren) {
     const isChildActive = item.children?.some((c) => c.path === location.pathname);
