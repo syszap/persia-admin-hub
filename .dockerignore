@@ -1,0 +1,25 @@
+# Dependencies (never copy node_modules into image)
+node_modules
+**/node_modules
+
+# Build output (rebuilt inside container)
+dist
+server/dist
+
+# Git
+.git
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea
+.vscode

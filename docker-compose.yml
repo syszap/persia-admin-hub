@@ -42,8 +42,8 @@ services:
   # ─── API (Backend) ───────────────────────────────────────────────────────────
   api:
     build:
-      context: ./server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: server/Dockerfile
       target: production
     container_name: persia_api
     restart: unless-stopped
