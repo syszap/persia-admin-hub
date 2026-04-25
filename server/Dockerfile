@@ -1,27 +1,30 @@
-# ─── Stage 1: Build ───────────────────────────────────────────────────────────
+# ─── Stage 1: Build ────────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files for the server
-COPY package*.json ./
-RUN npm ci
+# Install server dependencies first (layer cached separately from source)
+COPY server/package*.json ./server/
+RUN cd server && npm ci
 
 # Copy server source and shared packages
-COPY . .
-COPY ../packages /packages
+COPY server/ ./server/
+COPY packages/ ./packages/
 
+# tsconfig.json includes "../packages/shared/**/*.ts" which resolves correctly
+# from WORKDIR /app/server → /app/packages/shared
+WORKDIR /app/server
 RUN npm run build
 
-# ─── Stage 2: Production ──────────────────────────────────────────────────────
+# ─── Stage 2: Production ───────────────────────────────────────────────────────
 FROM node:20-alpine AS production
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY server/package*.json ./
 RUN npm ci --omit=dev
 
-COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/server/dist ./dist
 
 ENV NODE_ENV=production
 
