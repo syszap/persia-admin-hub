@@ -1,10 +1,17 @@
+version: "3.9"
+
 services:
+  # ─── PostgreSQL ─────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
     container_name: persia_postgres
     restart: unless-stopped
     env_file:
       - .env.docker
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-persia_admin}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pg_data:/var/lib/postgresql/data
     networks:
@@ -14,24 +21,67 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 15s
 
-  app:
+  # ─── Redis ──────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: persia_redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-changeme} --maxmemory 128mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── API (Backend) ───────────────────────────────────────────────────────────
+  api:
     build:
       context: ./server
       dockerfile: Dockerfile
-    container_name: persia_app
+      target: production
+    container_name: persia_api
     restart: unless-stopped
     env_file:
       - .env.docker
+    environment:
+      NODE_ENV: production
+      PG_HOST: postgres
+      PG_PORT: "5432"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      FRONTEND_URL: http://localhost
     ports:
-      - "58000:58000"
+      - "3001:3001"
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - app_network
 
+  # ─── Frontend (Web) ──────────────────────────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      target: runner
+    container_name: persia_web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - app_network
+
+  # ─── PostgreSQL Backups ───────────────────────────────────────────────────────
   pgbackups:
     image: prodrigestivill/postgres-backup-local:16-alpine
     container_name: persia_pgbackups
@@ -40,10 +90,13 @@ services:
       - .env.docker
     environment:
       POSTGRES_HOST: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-persia_admin}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       SCHEDULE: "0 */6 * * *"
-      BACKUP_KEEP_DAYS: 7
-      BACKUP_KEEP_WEEKS: 4
-      BACKUP_KEEP_MONTHS: 6
+      BACKUP_KEEP_DAYS: "7"
+      BACKUP_KEEP_WEEKS: "4"
+      BACKUP_KEEP_MONTHS: "6"
     volumes:
       - pg_backups:/backups
     depends_on:
@@ -54,6 +107,7 @@ services:
 
 volumes:
   pg_data:
+  redis_data:
   pg_backups:
 
 networks:

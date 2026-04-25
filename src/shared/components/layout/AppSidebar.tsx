@@ -1,16 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import {
-  LayoutDashboard,
-  Menu as MenuIcon,
-  BarChart3,
-  Users,
-  Shield,
-  Settings,
-  ChevronDown,
-  X,
-  PanelRightClose,
-  PanelRightOpen,
+  LayoutDashboard, Menu as MenuIcon, BarChart3, Users, Shield, Settings,
+  ChevronDown, X, PanelRightClose, PanelRightOpen,
+  DollarSign, ShoppingBag, ShoppingCart, ClipboardList, Package, BookOpen, UserCheck, History,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -23,27 +16,68 @@ interface NavItem {
   title: string;
   icon: React.ElementType;
   path?: string;
-  /** PBAC: hide item when user lacks this permission */
   requiredPermission?: Permission;
-  /** Legacy fallback kept for top-level grouping nodes */
-  requiredRole?: 'admin' | 'moderator' | 'user';
   children?: NavItem[];
 }
 
 const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', title: 'داشبورد', icon: LayoutDashboard, path: '/' },
-  { id: 'menus', title: 'مدیریت منوها', icon: MenuIcon, path: '/menus' },
+  { id: 'menus', title: 'مدیریت منوها', icon: MenuIcon, path: '/menus', requiredPermission: 'menu.view' },
+
+  // Financial
+  {
+    id: 'financial',
+    title: 'مالی و حسابداری',
+    icon: DollarSign,
+    requiredPermission: 'financial.view',
+    children: [
+      { id: 'accounts', title: 'حساب‌های کل', icon: BookOpen, path: '/financial/accounts', requiredPermission: 'account.view' },
+      { id: 'transactions', title: 'اسناد حسابداری', icon: ClipboardList, path: '/financial/transactions', requiredPermission: 'financial.view' },
+      { id: 'ledger', title: 'دفتر کل', icon: BarChart3, path: '/financial/ledger', requiredPermission: 'financial.view' },
+    ],
+  },
+
+  // Cheques
   {
     id: 'returned-cheques',
     title: 'چک برگشتی',
     icon: BarChart3,
+    requiredPermission: 'cheque.view',
     children: [
-      { id: 'cheques-list', title: 'لیست چک‌ها', icon: BarChart3, path: '/returned-cheques' },
-      { id: 'cheques-customers', title: 'مشتریان', icon: Users, path: '/returned-cheques/customers' },
+      { id: 'cheques-list', title: 'لیست چک‌ها', icon: BarChart3, path: '/returned-cheques', requiredPermission: 'cheque.view' },
+      { id: 'cheques-customers', title: 'مشتریان', icon: Users, path: '/returned-cheques/customers', requiredPermission: 'cheque.view' },
     ],
   },
+
+  // Products
+  {
+    id: 'products',
+    title: 'محصولات',
+    icon: ShoppingBag,
+    requiredPermission: 'product.view',
+    children: [
+      { id: 'products-list', title: 'لیست محصولات', icon: ShoppingBag, path: '/products', requiredPermission: 'product.view' },
+      { id: 'categories', title: 'دسته‌بندی‌ها', icon: Package, path: '/products/categories', requiredPermission: 'product.view' },
+      { id: 'inventory', title: 'انبار', icon: Package, path: '/products/inventory', requiredPermission: 'product.view' },
+    ],
+  },
+
+  // Orders
+  {
+    id: 'orders',
+    title: 'سفارشات',
+    icon: ShoppingCart,
+    requiredPermission: 'order.view',
+    children: [
+      { id: 'orders-list', title: 'لیست سفارشات', icon: ShoppingCart, path: '/orders', requiredPermission: 'order.view' },
+      { id: 'customers', title: 'مشتریان', icon: UserCheck, path: '/orders/customers', requiredPermission: 'customer.view' },
+    ],
+  },
+
+  // Admin
   { id: 'users', title: 'مدیریت کاربران', icon: Users, path: '/users', requiredPermission: 'user.view' },
   { id: 'roles', title: 'نقش‌ها و دسترسی‌ها', icon: Shield, path: '/roles', requiredPermission: 'role.view' },
+  { id: 'audit', title: 'لاگ رویدادها', icon: History, path: '/audit', requiredPermission: 'audit.view' },
   { id: 'settings', title: 'تنظیمات سیستم', icon: Settings, path: '/settings', requiredPermission: 'settings.view' },
 ];
 
@@ -57,14 +91,13 @@ const SidebarItem = ({
   onNavigate?: () => void;
 }) => {
   const location = useLocation();
-  const { hasRole, hasPermission } = useAuthStore();
+  const { hasPermission } = useAuthStore();
   const [expanded, setExpanded] = useState(false);
   const hasChildren = !!item.children?.length;
   const isActive = item.path === location.pathname;
   const Icon = item.icon;
 
   if (item.requiredPermission && !hasPermission(item.requiredPermission)) return null;
-  if (!item.requiredPermission && item.requiredRole && !hasRole(item.requiredRole)) return null;
 
   if (hasChildren) {
     const isChildActive = item.children?.some((c) => c.path === location.pathname);
@@ -83,9 +116,7 @@ const SidebarItem = ({
           {!collapsed && (
             <>
               <span className="flex-1 text-right">{item.title}</span>
-              <ChevronDown
-                className={cn('w-4 h-4 transition-transform duration-200', (expanded || isChildActive) && 'rotate-180')}
-              />
+              <ChevronDown className={cn('w-4 h-4 transition-transform duration-200', (expanded || isChildActive) && 'rotate-180')} />
             </>
           )}
         </button>
@@ -112,12 +143,7 @@ const SidebarItem = ({
       )}
       style={isActive ? { boxShadow: '0 2px 8px hsl(152 55% 42% / 0.3)' } : undefined}
     >
-      <Icon
-        className={cn(
-          'w-5 h-5 shrink-0 transition-all duration-200',
-          !isActive && 'group-hover:scale-110 group-hover:text-primary',
-        )}
-      />
+      <Icon className={cn('w-5 h-5 shrink-0 transition-all duration-200', !isActive && 'group-hover:scale-110 group-hover:text-primary')} />
       {!collapsed && <span>{item.title}</span>}
     </Link>
   );
@@ -165,15 +191,10 @@ const AppSidebar = ({ open, onClose }: AppSidebarProps) => {
         )}
         style={{ boxShadow: '-4px 0 20px rgba(0,0,0,0.05)' }}
       >
-        {/* Header */}
         <div className="h-[60px] flex items-center justify-between px-4 border-b border-border/40">
           {!collapsed || isMobile ? (
             <Link to="/" className="flex items-center gap-2.5 group">
-              <img
-                src={logo}
-                alt="شیما"
-                className="w-9 h-9 object-contain transition-transform duration-200 group-hover:scale-105"
-              />
+              <img src={logo} alt="شیما" className="w-9 h-9 object-contain transition-transform duration-200 group-hover:scale-105" />
               <span className="font-bold text-foreground text-[15px]">پنل مدیریت</span>
             </Link>
           ) : (
@@ -187,29 +208,16 @@ const AppSidebar = ({ open, onClose }: AppSidebarProps) => {
             onClick={() => (isMobile ? onClose() : setCollapsed(!collapsed))}
             className={cn('h-8 w-8 rounded-lg hover:bg-muted/80', collapsed && !isMobile && 'mx-auto')}
           >
-            {isMobile ? (
-              <X className="w-5 h-5" />
-            ) : collapsed ? (
-              <PanelRightOpen className="w-4 h-4" />
-            ) : (
-              <PanelRightClose className="w-4 h-4" />
-            )}
+            {isMobile ? <X className="w-5 h-5" /> : collapsed ? <PanelRightOpen className="w-4 h-4" /> : <PanelRightClose className="w-4 h-4" />}
           </Button>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
           {NAV_ITEMS.map((item) => (
-            <SidebarItem
-              key={item.id}
-              item={item}
-              collapsed={collapsed && !isMobile}
-              onNavigate={handleNavigate}
-            />
+            <SidebarItem key={item.id} item={item} collapsed={collapsed && !isMobile} onNavigate={handleNavigate} />
           ))}
         </nav>
 
-        {/* User footer */}
         <div className="p-3 border-t border-border/40">
           {!collapsed || isMobile ? (
             <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors">
