@@ -1,77 +1,89 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import dotenv from 'dotenv';
-import bcrypt from 'bcrypt';
-import { initDB } from './postgres';
-import pgPool from './postgres';
-import { startSyncCron } from './sync';
-import { authMiddleware } from './middleware/auth';
-import returnedChequesRouter from './routes/returnedCheques';
-import authRouter from './routes/auth';
-
 dotenv.config();
 
+import { config } from './config/app.config';
+import { connectRedis } from './config/redis.config';
+import { initSchema } from './schema/init';
+import { seedDefaultUsers } from './modules/auth/auth.service';
+import { startSyncCron } from './sync';
+import { httpLogger, logger } from './middlewares/logger';
+import { globalLimiter } from './middlewares/rateLimiter';
+import { errorHandler, notFound } from './middlewares/errorHandler';
+import { authMiddleware } from './middlewares/auth';
+
+import authRouter from './modules/auth/auth.routes';
+import usersRouter from './modules/users/users.routes';
+import financialRouter from './modules/financial/financial.routes';
+import productsRouter from './modules/products/products.routes';
+import ordersRouter from './modules/orders/orders.routes';
+import auditRouter from './modules/audit/audit.routes';
+import returnedChequesRouter from './routes/returnedCheques';
+
 const app = express();
-const PORT = parseInt(process.env.PORT ?? '3001', 10);
 
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:8080',
-  process.env.FRONTEND_URL,
-].filter((o): o is string => Boolean(o));
+// ─── Security & parsing ───────────────────────────────────────────────────────
+app.use(helmet({ contentSecurityPolicy: config.isProduction }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || config.cors.allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    }
+  },
+  credentials: true,
+}));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS: origin ${origin} is not allowed`));
-      }
-    },
-  })
-);
+// ─── Logging ──────────────────────────────────────────────────────────────────
+app.use(httpLogger);
 
-app.use(express.json());
+// ─── Rate limiting ────────────────────────────────────────────────────────────
+app.use(globalLimiter);
 
+// ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok' });
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), version: '2.0.0' });
 });
 
-// Public auth routes (no JWT required)
+// ─── Public routes ────────────────────────────────────────────────────────────
 app.use('/api/auth', authRouter);
 
-// Protect all other /api/* routes with JWT
+// ─── Protected routes ─────────────────────────────────────────────────────────
 app.use('/api', authMiddleware);
-
+app.use('/api/users', usersRouter);
+app.use('/api/financial', financialRouter);
+app.use('/api/products', productsRouter);
+app.use('/api/orders', ordersRouter);
+app.use('/api/audit', auditRouter);
 app.use('/api/returned-cheques', returnedChequesRouter);
 
+// ─── Error handling ───────────────────────────────────────────────────────────
+app.use(notFound);
+app.use(errorHandler);
+
+// ─── Bootstrap ────────────────────────────────────────────────────────────────
 async function bootstrap(): Promise<void> {
-  // Initialize PostgreSQL schema
-  await initDB();
-  console.log('[postgres] schema ready');
+  await connectRedis();
 
-  // Seed default admin user if no users exist
-  const { rows } = await pgPool.query<{ count: string }>('SELECT COUNT(*) AS count FROM users');
-  if (parseInt(rows[0].count, 10) === 0) {
-    const hash = await bcrypt.hash('admin', 12);
-    await pgPool.query(
-      'INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3)',
-      ['admin', hash, 'admin'],
-    );
-    console.log('[postgres] default admin user created (username: admin, password: admin)');
-  }
+  await initSchema();
+  logger.info('[schema] ready');
 
-  // Start sync cron job
+  await seedDefaultUsers();
+
   startSyncCron();
 
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-    console.log(`Allowed origins: ${allowedOrigins.join(', ')}`);
+  app.listen(config.port, () => {
+    logger.info(`Server running on http://localhost:${config.port}`);
+    logger.info(`Environment: ${config.nodeEnv}`);
   });
 }
 
 bootstrap().catch((err) => {
-  console.error('Failed to start server:', err);
+  logger.error(err, 'Failed to start server');
   process.exit(1);
 });

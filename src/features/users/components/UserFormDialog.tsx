@@ -32,14 +32,14 @@ interface UserFormDialogProps {
 const UserFormDialog = ({ open, editingUser, onClose, onSubmit }: UserFormDialogProps) => {
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
-    defaultValues: { name: '', email: '', role: 'user' },
+    defaultValues: { username: '', email: '', role: 'user', isActive: true },
   });
 
   useEffect(() => {
     if (editingUser) {
-      form.reset({ name: editingUser.name, email: editingUser.email, role: editingUser.role });
+      form.reset({ username: editingUser.username, email: editingUser.email ?? '', role: editingUser.role, isActive: editingUser.isActive });
     } else {
-      form.reset({ name: '', email: '', role: 'user' });
+      form.reset({ username: '', email: '', role: 'user', isActive: true });
     }
   }, [editingUser, form]);
 
@@ -61,12 +61,12 @@ const UserFormDialog = ({ open, editingUser, onClose, onSubmit }: UserFormDialog
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-4">
             <FormField
               control={form.control}
-              name="name"
+              name="username"
               render={({ field }) => (
                 <FormItem className="space-y-2">
-                  <Label className="label-subtle">نام</Label>
+                  <Label className="label-subtle">نام کاربری</Label>
                   <FormControl>
-                    <Input {...field} placeholder="نام کاربر" className="input-premium h-11 rounded-xl" />
+                    <Input {...field} placeholder="نام کاربری" className="input-premium h-11 rounded-xl" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -105,9 +105,12 @@ const UserFormDialog = ({ open, editingUser, onClose, onSubmit }: UserFormDialog
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      <SelectItem value="owner">مالک</SelectItem>
                       <SelectItem value="admin">مدیر</SelectItem>
-                      <SelectItem value="moderator">ناظر</SelectItem>
+                      <SelectItem value="finance_manager">مدیر مالی</SelectItem>
+                      <SelectItem value="product_manager">مدیر محصول</SelectItem>
                       <SelectItem value="user">کاربر</SelectItem>
+                      <SelectItem value="customer">مشتری</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

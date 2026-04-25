@@ -1,21 +1,26 @@
 import { apiClient } from '@/services/api/client';
-import type { User, CreateUserPayload } from '../types';
+import type { User, CreateUserPayload, UpdateUserPayload } from '../types';
 
 const BASE = '/users';
 
 export const usersService = {
-  getAll: async (): Promise<User[]> => {
-    const { data } = await apiClient.get<User[]>(BASE);
+  getAll: async (params?: Record<string, unknown>) => {
+    const { data } = await apiClient.get(BASE, { params });
     return data;
   },
 
-  create: async (payload: CreateUserPayload): Promise<User> => {
-    const { data } = await apiClient.post<User>(BASE, payload);
+  getById: async (id: string): Promise<User> => {
+    const { data } = await apiClient.get<{ data: User }>(`${BASE}/${id}`);
+    return data.data;
+  },
+
+  create: async (payload: CreateUserPayload) => {
+    const { data } = await apiClient.post(BASE, payload);
     return data;
   },
 
-  update: async (id: string, payload: Partial<CreateUserPayload>): Promise<User> => {
-    const { data } = await apiClient.put<User>(`${BASE}/${id}`, payload);
+  update: async (id: string, payload: UpdateUserPayload) => {
+    const { data } = await apiClient.patch(`${BASE}/${id}`, payload);
     return data;
   },
 

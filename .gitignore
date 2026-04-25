@@ -2,6 +2,11 @@
 server/.env
 server/node_modules
 server/dist
+packages/shared/node_modules
+
+# Docker env overrides
+.env.docker.local
+.env.local
 
 # Logs
 logs

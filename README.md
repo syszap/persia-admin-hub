@@ -1,346 +1,290 @@
-# 🧾 Persia Admin Hub — Returned Cheques System
+# Persia Admin Hub — Production-Ready SaaS Admin Platform
 
-A production-grade financial monitoring system for managing **returned cheques (چک برگشتی)** with:
-
-* SQL Server → PostgreSQL data replication
-* Background sync (cron-based)
-* Authentication (JWT)
-* Advanced analytics (risk, alerts, grouping)
-* Excel export
-* Enterprise-ready architecture
+A full-stack, Dockerized SaaS admin platform built with React (Vite + TypeScript) on the frontend and Node.js/Express on the backend, featuring JWT authentication, RBAC, financial double-entry accounting, product/order management, and real-time audit logging.
 
 ---
 
-# 🚀 Key Features
+## 🏗️ Architecture
 
-## 🧾 Core
-
-* مشاهده چک‌های برگشتی
-* فیلتر پیشرفته (مشتری، تاریخ، شماره چک)
-* pagination سمت سرور
-* نمایش وضعیت سررسید
-
-## 📊 Advanced
-
-* داشبورد خلاصه (summary)
-* گروه‌بندی بر اساس مشتری
-* امتیاز ریسک (Risk Level)
-* Alert خودکار
-* Export به Excel
-
-## 🔐 Security
-
-* سیستم لاگین (JWT)
-* محافظت از تمام API ها
-* عدم دسترسی مستقیم frontend به دیتابیس
-
----
-
-# 🏗️ Architecture
-
-```text
-SQL Server (ERP / Source)
-        ↓
-Sync Service (Node + Cron)
-        ↓
-PostgreSQL (App Database)
-        ↓
-Express API (JWT Protected)
-        ↓
-React Frontend
+```
+persia-admin-hub/
+├── src/                          # React frontend (Vite + TypeScript)
+│   ├── features/
+│   │   ├── auth/                 # JWT auth + RBAC store
+│   │   ├── dashboard/            # Home dashboard with live stats
+│   │   ├── financial/            # Accounts, transactions, ledger
+│   │   ├── products/             # Products, categories, inventory
+│   │   ├── orders/               # Orders, customers
+│   │   ├── users/                # User management
+│   │   ├── roles/                # Roles & permissions
+│   │   ├── audit/                # Audit log viewer
+│   │   └── returned-cheques/     # Cheque tracking module
+│   ├── shared/                   # Layout, error boundary, offline fallback
+│   └── services/api/             # Axios client with token refresh
+├── server/                       # Express backend (TypeScript)
+│   ├── config/                   # App, Redis configuration
+│   ├── middlewares/              # Auth, RBAC, logger, rate limiter, error handler
+│   ├── modules/
+│   │   ├── auth/                 # Login, refresh, logout
+│   │   ├── financial/            # Chart of accounts, journal, ledger
+│   │   ├── products/             # Product catalog, inventory
+│   │   ├── orders/               # Orders, customers
+│   │   ├── users/                # User management
+│   │   └── audit/                # Audit log API
+│   ├── schema/                   # PostgreSQL schema initialization
+│   └── utils/                    # Response helpers, Zod validators
+└── packages/shared/              # Shared TypeScript types (frontend + backend)
 ```
 
 ---
 
-# ⚙️ Requirements
+## 🚀 Quick Start (Docker)
 
-* Node.js >= 18
-* SQL Server (source)
-* PostgreSQL (app database)
-* npm
+### Prerequisites
 
----
+- Docker Engine 24+
+- Docker Compose V2
 
-# 📦 Installation
-
-## 1️⃣ Clone project
+### 1. Clone and configure
 
 ```bash
-git clone https://github.com/syszap/persia-admin-hub.git
+git clone https://github.com/syszap/persia-admin-hub
 cd persia-admin-hub
 ```
 
----
+Edit `.env.docker` and change all `CHANGE_ME_*` values:
 
-## 2️⃣ Install dependencies
-
-```bash
-npm install
-cd server
-npm install
+```env
+POSTGRES_PASSWORD=your_strong_password
+JWT_SECRET=your_32+_char_random_secret
+JWT_REFRESH_SECRET=your_other_32+_char_secret
+REDIS_PASSWORD=your_redis_password
 ```
 
+### 2. Build and start
+
+```bash
+docker-compose up --build
+```
+
+### 3. Access the application
+
+| Service    | URL                         |
+|------------|-----------------------------|
+| Frontend   | http://localhost            |
+| API        | http://localhost:3001       |
+| Health     | http://localhost:3001/health|
+
+### Default credentials
+
+| Username | Password   | Role  |
+|----------|------------|-------|
+| admin    | Admin@1234 | owner |
+
+> ⚠️ Change the default password immediately after first login.
+
 ---
 
-# 🧠 Environment Setup
+## 💻 Local Development
 
-Create:
+### Backend
 
 ```bash
 cd server
 cp .env.example .env
-```
-
----
-
-## ✏️ Configure `.env`
-
-```env
-# SQL Server (Source)
-SQL_SERVER_CONN=DRIVER={ODBC Driver 18 for SQL Server};SERVER=YOUR_SERVER;DATABASE=Shima_sg3;UID=USER;PWD=PASSWORD;Encrypt=no;TrustServerCertificate=yes;
-
-# PostgreSQL (App DB)
-PG_HOST=localhost
-PG_PORT=5432
-PG_DATABASE=persia_admin
-PG_USER=postgres
-PG_PASSWORD=your_password
-
-# Auth
-JWT_SECRET=your_super_secret_key
-
-# App
-PORT=3001
-FRONTEND_URL=http://localhost:5173
-```
-
----
-
-# 🚀 Run Project
-
-## Terminal 1 — Backend
-
-```bash
-npm run dev:server
-```
-
-## Terminal 2 — Frontend
-
-```bash
+# Edit .env with your local PostgreSQL and Redis settings
+npm install
 npm run dev
 ```
 
----
+### Frontend
 
-# 🌐 Access
-
-* Frontend: http://localhost:5173
-* API: http://localhost:3001/api
-
----
-
-# 🔐 Default Login
-
-After first run:
-
-```text
-username: admin
-password: admin
+```bash
+npm install
+npm run dev
 ```
 
-⚠️ حتماً بعد از ورود تغییر بده
+The frontend dev server runs on `http://localhost:8080` and proxies `/api` to `http://localhost:3001`.
 
 ---
 
-# 🔁 Sync System
+## 🔐 Authentication & RBAC
 
-## ⏱ Schedule
+### Roles
 
-```cron
-*/30 9-18 * * *
-```
+| Role              | Description        | Access Level       |
+|-------------------|--------------------|---------------------|
+| `owner`           | System owner       | Full access         |
+| `admin`           | Administrator      | Almost full         |
+| `finance_manager` | Financial team     | Financial + reports |
+| `product_manager` | Product team       | Products + orders   |
+| `user`            | Standard user      | Read-only           |
+| `customer`        | External customer  | Orders + products   |
 
-یعنی:
+### Auth Flow
 
-* هر 30 دقیقه
-* بین 9 صبح تا 6 عصر
+1. `POST /api/auth/login` → returns `{ token, refreshToken, user }`
+2. Access token expires in **15 minutes** (configurable)
+3. Automatic silent refresh via interceptor on 401
+4. `POST /api/auth/refresh` with `refreshToken` → new token pair
+5. `POST /api/auth/logout` → invalidates refresh token
 
----
+### JWT Security
 
-## 🔄 Flow
-
-1. Query از SQL Server اجرا می‌شود
-2. داده‌ها دریافت می‌شوند
-3. در PostgreSQL با UPSERT ذخیره می‌شوند
-
----
-
-## ⚠️ نکات مهم
-
-* جلوگیری از اجرای همزمان (lock)
-* log کامل (start / end / error)
-* دیتابیس اصلی تحت فشار قرار نمی‌گیرد
+- Access token: **in-memory only** (never persisted to localStorage)
+- Refresh token: stored as **SHA-256 hash** in PostgreSQL
+- Rotating refresh tokens (each use issues a new pair)
 
 ---
 
-# 🧠 Database Design
+## 💰 Financial Module (Double-Entry Accounting)
 
-## PostgreSQL Tables
+| Feature         | Description                                      |
+|-----------------|--------------------------------------------------|
+| Chart of Accounts | Asset, Liability, Equity, Revenue, Expense     |
+| Journal Entries | Draft → Posted → Void workflow                   |
+| Ledger          | Per-account history with running balance         |
+| Trial Balance   | Full account balance report                      |
 
-### returned_cheques
-
-* mirror کامل دیتای SQL Server
-* unique key:
-
-```sql
-(voucher_ref, followup_number)
-```
+All transactions enforce the **double-entry principle** (debits must equal credits).
 
 ---
 
-### users
+## 📦 Product & Order Module
 
-* authentication system
-* password به صورت hash ذخیره می‌شود
-
----
-
-# 🔌 API Endpoints
-
-## 🔐 Auth
-
-```http
-POST /api/auth/login
-```
+- Categories with hierarchical support
+- Product catalog with inventory tracking
+- Low-stock alerts
+- Customer management with credit limits
+- Order lifecycle: Pending → Confirmed → Processing → Shipped → Delivered
 
 ---
 
-## 📄 Cheques
+## 📊 API Reference
 
-```http
-GET /api/returned-cheques
-```
+All endpoints are prefixed with `/api`. Protected routes require `Authorization: Bearer <token>`.
 
-Params:
+### Auth
 
-* page
-* limit
-* search
-* fromDate
-* toDate
+| Method | Path           | Auth | Description     |
+|--------|----------------|------|-----------------|
+| POST   | /auth/login    | No   | Login           |
+| POST   | /auth/refresh  | No   | Refresh tokens  |
+| POST   | /auth/logout   | No   | Logout          |
+| GET    | /auth/me       | Yes  | Current user    |
 
----
+### Users
 
-## 📊 Summary
+| Method | Path       | Permission  |
+|--------|------------|-------------|
+| GET    | /users     | user.view   |
+| POST   | /users     | user.create |
+| PATCH  | /users/:id | user.update |
+| DELETE | /users/:id | user.delete |
 
-```http
-GET /api/returned-cheques/summary
-```
+### Financial
 
----
+| Method | Path                              | Permission         |
+|--------|-----------------------------------|--------------------|
+| GET    | /financial/accounts               | account.view       |
+| POST   | /financial/accounts               | account.create     |
+| GET    | /financial/accounts/trial-balance | financial.view     |
+| GET    | /financial/accounts/:id/ledger    | financial.view     |
+| GET    | /financial/transactions           | financial.view     |
+| POST   | /financial/transactions           | financial.create   |
+| POST   | /financial/transactions/:id/post  | financial.approve  |
+| POST   | /financial/transactions/:id/void  | financial.approve  |
 
-## 👥 By Customer
+### Products & Orders
 
-```http
-GET /api/returned-cheques/by-customer
-```
-
----
-
-## 📥 Export
-
-```http
-GET /api/returned-cheques/export
-```
-
----
-
-# ⚡ Performance
-
-* PostgreSQL برای read (سریع)
-* SQL Server فقط برای sync
-* cache داخلی (60s)
-* pagination در سطح SQL
-
----
-
-# 🛡️ Security
-
-* JWT برای تمام API ها
-* bcrypt برای رمز عبور
-* env-based secrets
-* عدم expose دیتابیس
+| Method | Path                         | Permission      |
+|--------|------------------------------|-----------------|
+| GET    | /products                    | product.view    |
+| POST   | /products                    | product.create  |
+| GET    | /products/low-stock          | product.view    |
+| GET    | /products/categories         | product.view    |
+| POST   | /products/inventory/movement | product.update  |
+| GET    | /orders                      | order.view      |
+| POST   | /orders                      | order.create    |
+| GET    | /orders/customers            | customer.view   |
+| POST   | /orders/customers            | customer.create |
 
 ---
 
-# ⚠️ Important Notes
+## 🌐 Environment Variables
 
-## ⏳ Data Delay
+### Required
 
-داده‌ها real-time نیستند:
+| Variable             | Description                         |
+|----------------------|-------------------------------------|
+| `PG_HOST`            | PostgreSQL host                     |
+| `PG_DATABASE`        | Database name                       |
+| `PG_USER`            | Database user                       |
+| `PG_PASSWORD`        | Database password                   |
+| `JWT_SECRET`         | Access token secret (32+ chars)     |
+| `JWT_REFRESH_SECRET` | Refresh token secret (32+ chars)    |
 
-👉 تا 30 دقیقه تاخیر ممکن است وجود داشته باشد
+### Optional
+
+| Variable              | Default     | Description                 |
+|-----------------------|-------------|-----------------------------|
+| `PORT`                | `3001`      | Server port                 |
+| `REDIS_HOST`          | `localhost` | Redis host                  |
+| `REDIS_PORT`          | `6379`      | Redis port                  |
+| `REDIS_PASSWORD`      | -           | Redis auth password         |
+| `JWT_ACCESS_EXPIRES`  | `15m`       | Access token TTL            |
+| `JWT_REFRESH_EXPIRES` | `7d`        | Refresh token TTL           |
+| `RATE_LIMIT_MAX`      | `100`       | Requests per 15-min window  |
+| `RATE_LIMIT_AUTH_MAX` | `10`        | Login attempts per 15 min   |
+| `MULTI_TENANT`        | `false`     | Enable multi-tenancy        |
+| `SQL_SERVER_CONN`     | -           | SQL Server connection string|
 
 ---
 
-## 📉 SQL Server Load
+## 📱 PWA Support
 
-* query فقط در sync اجرا می‌شود
-* فشار مستقیم از UI حذف شده
+- Service worker with offline caching (Workbox)
+- Cache-first for static assets, network-first for API calls
+- RTL (right-to-left) Persian language support
+- Installable on desktop and mobile
 
 ---
 
-# 📁 Project Structure
+## 🧪 Testing
 
-```text
-.
-├── src/                    # React frontend
-├── server/
-│   ├── routes/
-│   ├── middleware/
-│   ├── postgres.ts
-│   ├── sync.ts
-│   ├── cache.ts
-│   └── index.ts
-├── vite.config.ts
-└── package.json
+```bash
+# Frontend tests (Vitest)
+npm test
+
+# Backend tests (Jest)
+cd server && npm test
 ```
 
 ---
 
-# 🧪 Development Tips
+## 🔒 Production Security Checklist
 
-* اگر لاگین کار نکرد → JWT_SECRET رو چک کن
-* اگر دیتا نیومد → sync لاگ‌ها رو ببین
-* اگر کند شد → index در PostgreSQL اضافه کن
-
----
-
-# 📈 Future Improvements
-
-* Redis cache
-* Incremental sync (CDC)
-* n8n integration (alerts)
-* SMS / WhatsApp notification
-* AI risk analysis
+- [ ] Change all `CHANGE_ME_*` values in `.env.docker`
+- [ ] Set `JWT_SECRET` to 64+ random characters
+- [ ] Enable HTTPS with a reverse proxy (nginx, Caddy, Traefik)
+- [ ] Configure firewall to block direct access to ports 3001 and 5432
+- [ ] Restrict `FRONTEND_URL` to your domain
 
 ---
 
-# 🤝 Contributing
+## 🧩 Tech Stack
 
-* UI را تغییر ندهید
-* commit message واضح باشد
-* PR قبل از merge بررسی شود
-
----
-
-# 📄 License
-
-Private / Internal Use
-
----
-
-## 👨‍💻 Author
-
-Milad Farahani
-https://github.com/syszap
+| Layer       | Technology                           |
+|-------------|--------------------------------------|
+| Frontend    | React 18, Vite, TypeScript, Tailwind |
+| UI Library  | shadcn/ui, Radix UI, Recharts        |
+| State       | Zustand, TanStack Query              |
+| Forms       | React Hook Form + Zod                |
+| Backend     | Node.js, Express, TypeScript         |
+| Validation  | Zod                                  |
+| Database    | PostgreSQL 16                        |
+| Cache       | Redis 7                              |
+| Auth        | JWT (access + refresh tokens)        |
+| Logging     | Pino + pino-http                     |
+| Docker      | Multi-stage builds, Docker Compose V2|
+| PWA         | Vite PWA Plugin + Workbox            |

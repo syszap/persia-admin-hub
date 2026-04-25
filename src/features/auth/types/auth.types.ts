@@ -1,42 +1,35 @@
-// ─── Roles (coarse-grained, kept for backward compat) ────────────────────────
-export type UserRole = 'admin' | 'moderator' | 'user';
+// ─── Roles ───────────────────────────────────────────────────────────────────
+export type UserRole =
+  | 'owner'
+  | 'admin'
+  | 'finance_manager'
+  | 'product_manager'
+  | 'user'
+  | 'customer';
 
-// ─── Permissions (fine-grained, domain.action) ───────────────────────────────
+// ─── Permissions ─────────────────────────────────────────────────────────────
 export type Permission =
-  // Users
-  | 'user.view'
-  | 'user.create'
-  | 'user.update'
-  | 'user.delete'
-  // Roles
-  | 'role.view'
-  | 'role.create'
-  | 'role.update'
-  | 'role.delete'
-  // Menus
-  | 'menu.view'
-  | 'menu.create'
-  | 'menu.update'
-  | 'menu.delete'
-  // Reports
-  | 'report.view'
-  | 'report.export'
-  // Cheques
-  | 'cheque.view'
-  | 'cheque.export'
-  | 'cheque.refund'
-  // Settings
-  | 'settings.view'
-  | 'settings.update'
-  // Audit
-  | 'audit.view';
+  | 'user.view' | 'user.create' | 'user.update' | 'user.delete'
+  | 'role.view' | 'role.create' | 'role.update' | 'role.delete'
+  | 'menu.view' | 'menu.create' | 'menu.update' | 'menu.delete'
+  | 'report.view' | 'report.export'
+  | 'cheque.view' | 'cheque.export' | 'cheque.refund'
+  | 'settings.view' | 'settings.update'
+  | 'audit.view'
+  | 'financial.view' | 'financial.create' | 'financial.update' | 'financial.delete' | 'financial.approve'
+  | 'account.view' | 'account.create' | 'account.update' | 'account.delete'
+  | 'product.view' | 'product.create' | 'product.update' | 'product.delete'
+  | 'order.view' | 'order.create' | 'order.update' | 'order.delete' | 'order.approve'
+  | 'customer.view' | 'customer.create' | 'customer.update' | 'customer.delete';
 
 // ─── Auth entities ────────────────────────────────────────────────────────────
 export interface AuthUser {
   id: string;
   username: string;
+  email?: string;
+  fullName?: string;
   role: UserRole;
-  /** Explicit permission grants returned by the backend (override role defaults) */
+  isActive: boolean;
   permissions?: Permission[];
 }
 
@@ -57,16 +50,29 @@ export interface RefreshResponse {
   user?: AuthUser;
 }
 
-// ─── RBAC weight table (kept for backward compat with hasRole()) ─────────────
+// ─── RBAC weight table ────────────────────────────────────────────────────────
 export const ROLE_WEIGHT: Record<UserRole, number> = {
-  admin: 100,
-  moderator: 50,
-  user: 10,
+  owner: 100,
+  admin: 90,
+  finance_manager: 70,
+  product_manager: 60,
+  user: 30,
+  customer: 10,
 };
 
-// ─── Default permission set per role (seed; backend explicit grants override) ─
+// ─── Role display labels ──────────────────────────────────────────────────────
+export const ROLE_LABELS: Record<UserRole, string> = {
+  owner: 'مالک',
+  admin: 'مدیر',
+  finance_manager: 'مدیر مالی',
+  product_manager: 'مدیر محصول',
+  user: 'کاربر',
+  customer: 'مشتری',
+};
+
+// ─── Default permissions per role ────────────────────────────────────────────
 export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
-  admin: [
+  owner: [
     'user.view', 'user.create', 'user.update', 'user.delete',
     'role.view', 'role.create', 'role.update', 'role.delete',
     'menu.view', 'menu.create', 'menu.update', 'menu.delete',
@@ -74,17 +80,43 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'cheque.view', 'cheque.export', 'cheque.refund',
     'settings.view', 'settings.update',
     'audit.view',
+    'financial.view', 'financial.create', 'financial.update', 'financial.delete', 'financial.approve',
+    'account.view', 'account.create', 'account.update', 'account.delete',
+    'product.view', 'product.create', 'product.update', 'product.delete',
+    'order.view', 'order.create', 'order.update', 'order.delete', 'order.approve',
+    'customer.view', 'customer.create', 'customer.update', 'customer.delete',
   ],
-  moderator: [
-    'user.view',
-    'menu.view', 'menu.create', 'menu.update',
+  admin: [
+    'user.view', 'user.create', 'user.update', 'user.delete',
+    'role.view', 'role.create', 'role.update',
+    'menu.view', 'menu.create', 'menu.update', 'menu.delete',
     'report.view', 'report.export',
-    'cheque.view', 'cheque.export',
-    'settings.view',
+    'cheque.view', 'cheque.export', 'cheque.refund',
+    'settings.view', 'settings.update',
+    'audit.view',
+    'financial.view', 'financial.create', 'financial.update', 'financial.approve',
+    'account.view', 'account.create', 'account.update',
+    'product.view', 'product.create', 'product.update', 'product.delete',
+    'order.view', 'order.create', 'order.update', 'order.approve',
+    'customer.view', 'customer.create', 'customer.update',
+  ],
+  finance_manager: [
+    'report.view', 'report.export',
+    'cheque.view', 'cheque.export', 'cheque.refund',
+    'financial.view', 'financial.create', 'financial.update',
+    'account.view', 'account.create',
+    'order.view',
+    'customer.view',
+  ],
+  product_manager: [
+    'product.view', 'product.create', 'product.update', 'product.delete',
+    'order.view', 'order.create', 'order.update',
+    'customer.view', 'customer.create', 'customer.update',
+    'report.view',
   ],
   user: [
-    'menu.view',
-    'report.view',
-    'cheque.view',
+    'menu.view', 'report.view', 'cheque.view',
+    'product.view', 'order.view', 'customer.view',
   ],
+  customer: ['order.view', 'product.view'],
 };

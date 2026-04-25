@@ -3,11 +3,9 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from '@/features/auth/components/ProtectedRoute';
 import AuthInitializer from '@/features/auth/components/AuthInitializer';
 import OfflineFallback from '@/shared/components/OfflineFallback';
-
-// Entry point — eagerly loaded
 import LoginPage from '@/features/auth/pages/LoginPage';
 
-// All protected pages are lazy-loaded
+// Core pages
 const DashboardPage                 = lazy(() => import('@/features/dashboard/pages/DashboardPage'));
 const MenuBuilderPage               = lazy(() => import('@/features/menus/pages/MenuBuilderPage'));
 const ReturnedChequesPage           = lazy(() => import('@/features/returned-cheques/pages/ReturnedChequesPage'));
@@ -15,7 +13,25 @@ const ReturnedChequesCustomersPage  = lazy(() => import('@/features/returned-che
 const UserManagementPage            = lazy(() => import('@/features/users/pages/UserManagementPage'));
 const RolesPermissionsPage          = lazy(() => import('@/features/roles/pages/RolesPermissionsPage'));
 const SystemSettingsPage            = lazy(() => import('@/features/settings/pages/SystemSettingsPage'));
-const NotFoundPage                  = lazy(() => import('@/pages/NotFound'));
+
+// Financial module
+const AccountsPage       = lazy(() => import('@/features/financial/pages/AccountsPage'));
+const TransactionsPage   = lazy(() => import('@/features/financial/pages/TransactionsPage'));
+const LedgerPage         = lazy(() => import('@/features/financial/pages/LedgerPage'));
+
+// Products module
+const ProductsPage    = lazy(() => import('@/features/products/pages/ProductsPage'));
+const CategoriesPage  = lazy(() => import('@/features/products/pages/CategoriesPage'));
+const InventoryPage   = lazy(() => import('@/features/products/pages/InventoryPage'));
+
+// Orders module
+const OrdersPage    = lazy(() => import('@/features/orders/pages/OrdersPage'));
+const CustomersPage = lazy(() => import('@/features/orders/pages/CustomersPage'));
+
+// Audit log
+const AuditLogPage = lazy(() => import('@/features/audit/pages/AuditLogPage'));
+
+const NotFoundPage = lazy(() => import('@/pages/NotFound'));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background" dir="rtl">
@@ -28,64 +44,40 @@ const PageLoader = () => (
 
 const AppRouter = () => (
   <BrowserRouter>
-    {/*
-      AuthInitializer performs a silent refresh on page reload
-      (access token is memory-only, so it's gone after reload).
-      It blocks rendering until auth state is settled.
-    */}
     <AuthInitializer>
-      {/*
-        OfflineFallback overlays an offline notice when connectivity is lost.
-        Children stay mounted and serve React Query cached data.
-      */}
       <OfflineFallback>
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
 
-            {/* ── General user routes (permission: cheque.view / menu.view) ── */}
-            <Route path="/" element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            } />
+            <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
 
-            <Route path="/menus" element={
-              <ProtectedRoute requiredPermission="menu.view">
-                <MenuBuilderPage />
-              </ProtectedRoute>
-            } />
+            {/* ── Menus & Reports ────────────────────────────────────────── */}
+            <Route path="/menus" element={<ProtectedRoute requiredPermission="menu.view"><MenuBuilderPage /></ProtectedRoute>} />
 
-            <Route path="/returned-cheques" element={
-              <ProtectedRoute requiredPermission="cheque.view">
-                <ReturnedChequesPage />
-              </ProtectedRoute>
-            } />
+            {/* ── Returned Cheques ───────────────────────────────────────── */}
+            <Route path="/returned-cheques" element={<ProtectedRoute requiredPermission="cheque.view"><ReturnedChequesPage /></ProtectedRoute>} />
+            <Route path="/returned-cheques/customers" element={<ProtectedRoute requiredPermission="cheque.view"><ReturnedChequesCustomersPage /></ProtectedRoute>} />
 
-            <Route path="/returned-cheques/customers" element={
-              <ProtectedRoute requiredPermission="cheque.view">
-                <ReturnedChequesCustomersPage />
-              </ProtectedRoute>
-            } />
+            {/* ── Financial module ───────────────────────────────────────── */}
+            <Route path="/financial/accounts" element={<ProtectedRoute requiredPermission="account.view"><AccountsPage /></ProtectedRoute>} />
+            <Route path="/financial/transactions" element={<ProtectedRoute requiredPermission="financial.view"><TransactionsPage /></ProtectedRoute>} />
+            <Route path="/financial/ledger" element={<ProtectedRoute requiredPermission="financial.view"><LedgerPage /></ProtectedRoute>} />
 
-            {/* ── Admin routes (fine-grained PBAC) ─────────────────────────── */}
-            <Route path="/users" element={
-              <ProtectedRoute requiredPermission="user.view">
-                <UserManagementPage />
-              </ProtectedRoute>
-            } />
+            {/* ── Products module ────────────────────────────────────────── */}
+            <Route path="/products" element={<ProtectedRoute requiredPermission="product.view"><ProductsPage /></ProtectedRoute>} />
+            <Route path="/products/categories" element={<ProtectedRoute requiredPermission="product.view"><CategoriesPage /></ProtectedRoute>} />
+            <Route path="/products/inventory" element={<ProtectedRoute requiredPermission="product.view"><InventoryPage /></ProtectedRoute>} />
 
-            <Route path="/roles" element={
-              <ProtectedRoute requiredPermission="role.view">
-                <RolesPermissionsPage />
-              </ProtectedRoute>
-            } />
+            {/* ── Orders module ──────────────────────────────────────────── */}
+            <Route path="/orders" element={<ProtectedRoute requiredPermission="order.view"><OrdersPage /></ProtectedRoute>} />
+            <Route path="/orders/customers" element={<ProtectedRoute requiredPermission="customer.view"><CustomersPage /></ProtectedRoute>} />
 
-            <Route path="/settings" element={
-              <ProtectedRoute requiredPermission="settings.view">
-                <SystemSettingsPage />
-              </ProtectedRoute>
-            } />
+            {/* ── Admin routes ───────────────────────────────────────────── */}
+            <Route path="/users" element={<ProtectedRoute requiredPermission="user.view"><UserManagementPage /></ProtectedRoute>} />
+            <Route path="/roles" element={<ProtectedRoute requiredPermission="role.view"><RolesPermissionsPage /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute requiredPermission="settings.view"><SystemSettingsPage /></ProtectedRoute>} />
+            <Route path="/audit" element={<ProtectedRoute requiredPermission="audit.view"><AuditLogPage /></ProtectedRoute>} />
 
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
